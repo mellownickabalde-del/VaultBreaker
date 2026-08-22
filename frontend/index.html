@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>BIO-VAULT 38 — The Last Guardian</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Cinzel:wght@600;800&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --acid:#00ff88;--acid-dim:#00c466;--acid-ghost:rgba(0,255,136,0.08);--acid-glow:rgba(0,255,136,0.5);
+  --danger:#ff3c3c;--danger-dim:#cc2020;--danger-glow:rgba(255,60,60,0.45);
+  --amber:#ffb800;--amber-glow:rgba(255,184,0,0.4);
+  --gold:#d4a843;--gold-lite:#f5d878;--gold-dim:#7a5e20;--glow-gold:rgba(212,168,67,0.55);
+  --bg:#030508;--bg-2:#080c12;--bg-3:#0d1420;--bg-4:#121a2a;--bg-5:#1a2336;
+  --border:rgba(0,255,136,0.1);--border-mid:rgba(0,255,136,0.25);--border-hi:rgba(0,255,136,0.5);
+  --text:#d0e8d4;--text-dim:#5a7a64;--text-mute:#2a3a30;
+  --green:#3ddc84;--green-glow:rgba(61,220,132,0.35);
+  --red:#ff5252;--red-glow:rgba(255,82,82,0.35);
+  --blue:#60a5fa;
+  --dial-size:clamp(220px, 72vw, 290px);
+}
+html,body{height:100%;background:var(--bg);overflow:hidden;}
+body{font-family:'Share Tech Mono',monospace;color:var(--text);overflow-x:hidden;overflow-y:hidden}
+body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,0.07) 0px,rgba(0,0,0,0.07) 1px,transparent 1px,transparent 3px)}
+.bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(0,255,136,0.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,0.018) 1px,transparent 1px);background-size:52px 52px;animation:grid-drift 30s linear infinite}
+@keyframes grid-drift{0%{background-position:0 0}100%{background-position:52px 52px}}
+.particles{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.particle{position:absolute;border-radius:50%;background:var(--acid);opacity:0;animation:drift linear infinite}
+@keyframes drift{0%{transform:translateY(100vh) scale(0.4);opacity:0}8%{opacity:0.4}92%{opacity:0.1}100%{transform:translateY(-8vh) scale(1);opacity:0}}
+.phase-flash{position:fixed;inset:0;z-index:8000;pointer-events:none;opacity:0;transition:opacity 0.1s}
+.phase-flash.red{background:rgba(255,60,60,0.06)}
+
+.screen{position:fixed;inset:0;z-index:10;display:none;flex-direction:column;align-items:center;opacity:0;transition:opacity 0.4s ease;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.screen.active{display:flex;opacity:1}
+.top-controls{position:fixed;top:10px;right:12px;z-index:999;display:flex;gap:6px;align-items:center}
+.ctrl-btn{background:var(--bg-2);border:1px solid var(--border);color:var(--acid);font-size:15px;width:38px;height:38px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 2px 12px rgba(0,0,0,0.5);-webkit-tap-highlight-color:transparent}
+.ctrl-btn:hover{border-color:var(--acid-dim);box-shadow:0 0 16px var(--acid-glow)}
+.ctrl-btn.muted,.ctrl-btn.off{color:var(--text-mute);border-color:var(--bg-5)}
+.ctrl-btn.voice-active{color:var(--acid);border-color:var(--acid);box-shadow:0 0 12px var(--acid-glow);animation:voice-pulse 1.8s ease-in-out infinite}
+@keyframes voice-pulse{0%,100%{box-shadow:0 0 8px var(--acid-glow)}50%{box-shadow:0 0 20px var(--acid-glow),0 0 40px rgba(0,255,136,0.2)}}
+
+.voice-indicator{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:997;display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);padding:6px 14px;opacity:0;pointer-events:none;transition:opacity 0.4s;white-space:nowrap;border-radius:2px}
+.voice-indicator.visible{opacity:1}
+.vi-bars{display:flex;align-items:center;gap:3px;height:18px}
+.vi-bar{width:3px;background:var(--acid);border-radius:2px;animation:vi-wave 0.8s ease-in-out infinite}
+.vi-bar:nth-child(1){animation-delay:0s;height:6px}.vi-bar:nth-child(2){animation-delay:0.12s;height:12px}.vi-bar:nth-child(3){animation-delay:0.24s;height:18px}.vi-bar:nth-child(4){animation-delay:0.36s;height:12px}.vi-bar:nth-child(5){animation-delay:0.48s;height:6px}
+@keyframes vi-wave{0%,100%{transform:scaleY(0.4);opacity:0.5}50%{transform:scaleY(1);opacity:1}}
+.vi-label{font-size:8px;letter-spacing:3px;color:var(--acid-dim)}
+.vi-speaker{font-size:11px;letter-spacing:2px;color:var(--text-dim)}
+
+#screen-boot{position:fixed;inset:0;z-index:9000;background:#030508;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:1;transition:opacity 0.6s ease;pointer-events:all}
+#screen-boot.fade-out{opacity:0;pointer-events:none}
+.boot-sigil{font-size:48px;animation:sigil-pulse 1.4s ease-in-out infinite}
+@keyframes sigil-pulse{0%,100%{opacity:0.4;transform:scale(0.95)}50%{opacity:1;transform:scale(1)}}
+.boot-label{font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:6px;color:var(--acid-dim)}
+.boot-bar-wrap{width:220px;height:2px;background:var(--bg-4)}
+.boot-bar-fill{height:100%;width:0;background:var(--acid);transition:width 0.05s linear;box-shadow:0 0 8px var(--acid-glow)}
+.boot-status{font-size:8px;letter-spacing:3px;color:var(--text-mute);min-height:14px;text-align:center}
+
+/* ── NAME ENTRY SCREEN ── */
+#screen-nameentry{position:fixed;inset:0;z-index:400;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:24px}
+.ne-card{width:100%;max-width:480px;background:#030608;border:1px solid rgba(0,255,136,0.25);position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.8);animation:ne-rise 0.5s cubic-bezier(0.22,1,0.36,1) both}
+.ne-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acid),transparent)}
+.ne-top{padding:6px 14px;background:rgba(0,255,136,0.04);border-bottom:1px solid rgba(0,255,136,0.08);display:flex;align-items:center;gap:8px}
+.ne-dot{width:7px;height:7px;border-radius:50%;background:var(--acid);box-shadow:0 0 8px var(--acid);animation:npulse 1.2s ease-in-out infinite}
+.ne-top-label{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:4px;color:var(--acid-dim)}
+.ne-body{padding:32px 28px 24px;display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center}
+.ne-icon{font-size:48px;filter:drop-shadow(0 0 16px rgba(0,255,136,0.4));animation:sigil-pulse 2s ease-in-out infinite}
+.ne-title{font-family:'Orbitron',sans-serif;font-size:18px;font-weight:900;color:var(--acid);letter-spacing:4px;text-shadow:0 0 30px var(--acid-glow)}
+.ne-sub{font-size:10px;color:var(--text-dim);letter-spacing:2px;line-height:1.7;max-width:340px}
+.ne-input-wrap{width:100%;position:relative}
+.ne-input{width:100%;background:var(--bg-3);border:2px solid rgba(0,255,136,0.2);color:var(--acid);font-family:'Orbitron',sans-serif;font-size:16px;letter-spacing:3px;padding:14px 16px;text-align:center;outline:none;transition:all 0.2s;text-transform:uppercase}
+.ne-input::placeholder{color:var(--text-mute);letter-spacing:3px;font-size:12px}
+.ne-input:focus{border-color:var(--acid-dim);box-shadow:0 0 20px rgba(0,255,136,0.15)}
+.ne-error{font-size:9px;letter-spacing:2px;color:var(--danger);min-height:16px;text-align:center}
+.btn-ne-confirm{width:100%;padding:16px;background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,80,40,0.2));border:2px solid var(--acid-dim);color:var(--acid);font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent}
+.btn-ne-confirm:hover{box-shadow:0 0 28px rgba(0,255,136,0.2);border-color:var(--acid)}
+.btn-ne-confirm:active{transform:scale(0.98)}
+@keyframes ne-rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.ne-class-hint{font-size:8px;letter-spacing:2px;color:var(--text-mute);border-top:1px solid var(--border);padding:10px 14px;text-align:center}
+
+/* ── LEADERBOARD SCREEN ── */
+#screen-leaderboard{justify-content:flex-start;padding:0 0 60px;background:var(--bg)}
+.lb-topbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg-2);border-bottom:1px solid var(--border);flex-shrink:0;position:sticky;top:0;z-index:20}
+.lb-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--gold-lite);letter-spacing:3px;text-align:center;flex:1}
+.lb-wrap{width:100%;max-width:760px;margin:0 auto;padding:16px 16px 20px}
+.lb-header-card{background:linear-gradient(135deg,rgba(212,168,67,0.08),rgba(0,255,136,0.04));border:1px solid rgba(212,168,67,0.2);padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden}
+.lb-header-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-lite),transparent)}
+.lb-trophy{font-size:36px;filter:drop-shadow(0 0 12px rgba(212,168,67,0.4))}
+.lb-header-text{flex:1}
+.lb-header-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;color:var(--gold-lite);letter-spacing:3px;margin-bottom:4px}
+.lb-header-sub{font-size:9px;color:var(--text-dim);letter-spacing:2px;line-height:1.6}
+.lb-score-formula{font-size:8px;letter-spacing:2px;color:rgba(212,168,67,0.5);margin-top:6px;border:1px solid rgba(212,168,67,0.15);padding:4px 10px;display:inline-block}
+.lb-cols{display:grid;grid-template-columns:40px 1fr 80px 80px 60px 60px;gap:0;padding:6px 10px;background:var(--bg-3);border:1px solid var(--border);border-bottom:none;margin-bottom:0}
+.lb-col-head{font-size:7px;letter-spacing:3px;color:var(--text-mute);white-space:nowrap;overflow:hidden}
+.lb-entries{border:1px solid var(--border);overflow:hidden;margin-bottom:12px}
+.lb-entry{display:grid;grid-template-columns:40px 1fr 80px 80px 60px 60px;gap:0;padding:10px 10px;border-bottom:1px solid rgba(0,255,136,0.05);transition:background 0.15s;align-items:center}
+.lb-entry:last-child{border-bottom:none}
+.lb-entry:hover{background:var(--acid-ghost)}
+.lb-entry.gold-entry{background:rgba(212,168,67,0.05);border-left:3px solid var(--gold-lite)}
+.lb-entry.silver-entry{background:rgba(200,200,200,0.03);border-left:3px solid #aaa}
+.lb-entry.bronze-entry{background:rgba(205,127,50,0.04);border-left:3px solid #cd7f32}
+.lb-entry.my-entry{background:rgba(0,255,136,0.06);}
+.lb-rank{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;color:var(--text-mute);text-align:center}
+.lb-rank.r1{color:var(--gold-lite);text-shadow:0 0 10px var(--glow-gold)}
+.lb-rank.r2{color:#c0c0c0}
+.lb-rank.r3{color:#cd7f32}
+.lb-name{font-family:'Orbitron',sans-serif;font-size:10px;color:var(--text);letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px}
+.lb-name.me{color:var(--acid)}
+.lb-avg{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--acid);text-align:right;padding-right:6px}
+.lb-best{font-size:9px;color:var(--text-dim);text-align:right;padding-right:6px}
+.lb-vaults{font-size:9px;color:var(--text-dim);text-align:center}
+.lb-time{font-size:9px;color:var(--text-mute);text-align:right}
+.lb-empty{padding:40px;text-align:center;font-size:11px;color:var(--text-mute);letter-spacing:2px}
+.lb-footer-btns{display:flex;gap:10px;flex-wrap:wrap}
+.btn-lb-export{flex:1;min-width:180px;padding:13px 16px;background:linear-gradient(135deg,rgba(212,168,67,0.1),rgba(100,60,0,0.2));border:2px solid rgba(212,168,67,0.3);color:var(--gold-lite);font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-lb-export:hover{border-color:var(--gold-lite);box-shadow:0 0 20px var(--glow-gold)}
+.btn-lb-clear{flex:0 0 auto;padding:13px 16px;background:transparent;border:1px solid rgba(255,60,60,0.2);color:rgba(255,60,60,0.4);font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:2px;cursor:pointer;transition:all 0.2s}
+.btn-lb-clear:hover{border-color:var(--danger);color:var(--danger)}
+.lb-my-badge{font-size:7px;letter-spacing:2px;padding:1px 5px;border:1px solid rgba(0,255,136,0.3);color:var(--acid-dim);margin-left:6px;vertical-align:middle}
+
+/* ── CITY MAP ── */
+.city-map-wrap{width:100%;padding:0 16px 8px;max-width:720px;margin:0 auto}
+.city-map-label{font-size:7px;letter-spacing:4px;color:var(--text-mute);margin-bottom:6px;padding-left:2px}
+.city-map-svg{width:100%;display:block}
+.city-sector{fill:var(--bg-3);stroke:rgba(0,255,136,0.2);stroke-width:1;transition:fill 0.8s ease,stroke 0.8s ease,filter 0.8s ease}
+.city-sector.active{fill:rgba(0,255,136,0.15);stroke:var(--acid);filter:drop-shadow(0 0 6px rgba(0,255,136,0.4))}
+.city-sector.partial{fill:rgba(255,184,0,0.08);stroke:var(--amber);filter:drop-shadow(0 0 4px rgba(255,184,0,0.3))}
+.sector-label{font-family:'Orbitron',sans-serif;font-size:7px;fill:var(--text-mute);text-anchor:middle;pointer-events:none;transition:fill 0.8s ease}
+.sector-label.active{fill:var(--acid)}
+.city-health-pct{font-family:'Orbitron',sans-serif;font-size:18px;fill:var(--text-mute);text-anchor:middle;transition:fill 0.8s ease}
+.city-health-pct.active{fill:var(--acid);filter:drop-shadow(0 0 8px rgba(0,255,136,0.5))}
+.city-health-sub{font-size:7px;letter-spacing:3px;fill:var(--text-mute);text-anchor:middle}
+
+/* ── STORY ── */
+.scene-illus{width:100%;aspect-ratio:4/3;max-height:45vh;position:relative;overflow:hidden;background:#030a06;isolation:isolate;flex-shrink:0}
+.beat-img-wrap{position:absolute;inset:0;z-index:1}
+.beat-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%;opacity:0;transition:opacity 0.6s ease;z-index:2;background:#030a06}
+.beat-img.visible{opacity:1}
+.beat-img-blur{position:absolute;inset:-30px;width:calc(100% + 60px);height:calc(100% + 60px);object-fit:cover;object-position:center;opacity:0;transition:opacity 0.6s ease;filter:blur(24px) brightness(0.35) saturate(1.3);z-index:1}
+.beat-img-blur.visible{opacity:1}
+.beat-img.prev{opacity:0}
+.scene-tag{position:absolute;top:10px;left:10px;z-index:5;font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:3px;color:var(--acid);background:rgba(3,5,8,0.82);border:1px solid rgba(0,255,136,0.25);padding:3px 10px;backdrop-filter:blur(4px)}
+.scene-scanlines{position:absolute;inset:0;z-index:3;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,0.08) 0px,rgba(0,0,0,0.08) 1px,transparent 1px,transparent 3px)}
+.scene-vignette{position:absolute;inset:0;z-index:4;pointer-events:none;background:radial-gradient(ellipse at center,transparent 40%,rgba(3,5,8,0.7) 100%)}
+.scene-bottom-fade{position:absolute;bottom:0;left:0;right:0;height:60px;z-index:4;pointer-events:none;background:linear-gradient(to bottom,transparent,rgba(3,5,8,0.85))}
+.sentinel-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;z-index:6}
+.sentinel-ring{width:100px;height:100px;border-radius:50%;border:2px solid rgba(0,255,136,0.4);display:flex;align-items:center;justify-content:center;position:relative;animation:sentinel-breathe 3s ease-in-out infinite;background:rgba(3,5,8,0.6);backdrop-filter:blur(8px)}
+.sentinel-ring::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px solid rgba(0,255,136,0.15);animation:sentinel-breathe 3s ease-in-out infinite 0.5s}
+.sentinel-ring::after{content:'';position:absolute;inset:-16px;border-radius:50%;border:1px solid rgba(0,255,136,0.07);animation:sentinel-breathe 3s ease-in-out infinite 1s}
+@keyframes sentinel-breathe{0%,100%{box-shadow:0 0 10px rgba(0,255,136,0.15)}50%{box-shadow:0 0 40px rgba(0,255,136,0.35)}}
+.sentinel-icon{font-size:36px}
+.sentinel-name{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:6px;color:var(--acid);text-shadow:0 0 20px var(--acid-glow);animation:sentinel-name-flicker 4s ease-in-out infinite;background:rgba(3,5,8,0.5);padding:4px 14px;backdrop-filter:blur(6px)}
+@keyframes sentinel-name-flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:0.3}94%{opacity:1}96%{opacity:0.6}97%{opacity:1}}
+.sentinel-sub{font-size:8px;letter-spacing:4px;color:var(--text-mute);background:rgba(3,5,8,0.5);padding:2px 10px}
+.sentinel-auth{font-size:9px;letter-spacing:3px;color:rgba(0,255,136,0.4);border:1px solid rgba(0,255,136,0.15);padding:3px 12px;margin-top:4px;animation:auth-pulse 2s ease-in-out infinite;background:rgba(3,5,8,0.6);backdrop-filter:blur(4px)}
+@keyframes auth-pulse{0%,100%{border-color:rgba(0,255,136,0.15);color:rgba(0,255,136,0.4)}50%{border-color:rgba(0,255,136,0.4);color:rgba(0,255,136,0.8)}}
+
+#screen-story{justify-content:center;background:var(--bg);padding:6px 8px 20px}
+.story-wrap{width:100%;max-width:760px;margin:0 auto}
+.story-card{background:#030608;border:1px solid rgba(0,255,136,0.18);position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.8)}
+.story-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acid),transparent)}
+.story-scanlines{display:none}
+.story-bottom{background:#030508;border-top:2px solid rgba(0,255,136,0.15)}
+.narrator-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(0,255,136,0.04);border-bottom:1px solid rgba(0,255,136,0.08)}
+.narrator-pulse{width:8px;height:8px;border-radius:50%;background:var(--acid);box-shadow:0 0 8px var(--acid);animation:npulse 1.2s ease-in-out infinite;flex-shrink:0}
+.narrator-pulse.speaking{background:var(--amber);box-shadow:0 0 8px var(--amber);animation:npulse-speak 0.6s ease-in-out infinite}
+@keyframes npulse{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes npulse-speak{0%,100%{opacity:1;transform:scale(1)}25%{transform:scale(1.4)}50%{opacity:0.5;transform:scale(0.8)}}
+.narrator-name{font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:3px;color:var(--acid)}
+.narrator-role{font-size:8px;letter-spacing:2px;color:rgba(0,255,136,0.3);margin-left:auto}
+.narrator-voice-badge{font-size:7px;letter-spacing:2px;padding:1px 6px;border:1px solid rgba(0,255,136,0.2);color:rgba(0,255,136,0.4);margin-left:8px;display:none}
+.narrator-voice-badge.on{display:inline-block;color:var(--acid-dim);border-color:rgba(0,255,136,0.3)}
+.narrator-voice-badge.speaking{display:inline-block;color:var(--amber);border-color:rgba(255,184,0,0.4);animation:badge-speak 0.8s ease-in-out infinite}
+@keyframes badge-speak{0%,100%{opacity:1}50%{opacity:0.6}}
+.beat-counter{display:flex;gap:5px;align-items:center;padding:4px 18px 0}
+.bdot{width:5px;height:5px;border-radius:50%;border:1px solid rgba(0,255,136,0.2);background:transparent;transition:all 0.25s}
+.bdot.active{background:var(--acid);border-color:var(--acid)}
+.bdot.done{background:rgba(0,255,136,0.3);border-color:rgba(0,255,136,0.3)}
+.dialogue-box{padding:14px 18px 12px;min-height:100px;position:relative;user-select:none}
+.dialogue-text{font-size:11.5px;line-height:1.85;color:#c8e0cc}
+.dialogue-cursor{display:inline-block;width:7px;height:13px;background:var(--acid);margin-left:2px;vertical-align:middle;animation:blink-c 0.7s step-end infinite}
+@keyframes blink-c{0%,100%{opacity:1}50%{opacity:0}}
+
+.lyra-mood-bar{display:flex;align-items:center;gap:8px;padding:4px 14px;background:rgba(0,255,136,0.02);border-bottom:1px solid rgba(0,255,136,0.05)}
+.lyra-mood-dot{width:6px;height:6px;border-radius:50%;background:var(--text-mute);transition:all 0.6s ease}
+.lyra-mood-dot.calm{background:rgba(0,255,136,0.4)}
+.lyra-mood-dot.urgent{background:var(--amber);box-shadow:0 0 6px var(--amber-glow);animation:npulse 0.8s ease-in-out infinite}
+.lyra-mood-dot.critical{background:var(--danger);box-shadow:0 0 6px var(--danger-glow);animation:npulse 0.5s ease-in-out infinite}
+.lyra-mood-label{font-size:7px;letter-spacing:3px;color:var(--text-mute)}
+.lyra-mood-status{font-size:7px;letter-spacing:2px;margin-left:auto;transition:color 0.6s ease}
+
+.story-footer{display:flex;flex-direction:column;gap:0;border-top:1px solid rgba(0,255,136,0.08)}
+.story-footer-meta{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 6px}
+.scene-counter{font-size:8px;letter-spacing:3px;color:rgba(0,255,136,0.25);white-space:nowrap}
+.scene-dots{display:flex;gap:6px}
+.sdot{width:6px;height:6px;border-radius:50%;border:1px solid rgba(0,255,136,0.25);background:transparent;transition:all 0.3s}
+.sdot.active{background:var(--acid);border-color:var(--acid)}
+.sdot.done{background:rgba(0,255,136,0.3);border-color:rgba(0,255,136,0.3)}
+.story-footer-actions{display:flex;gap:0;border-top:1px solid rgba(0,255,136,0.06)}
+.btn-skip-story{flex:0 0 auto;background:transparent;border:none;border-right:1px solid rgba(0,255,136,0.1);color:rgba(0,255,136,0.3);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;padding:10px 16px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.btn-skip-story:hover{color:rgba(0,255,136,0.6);background:rgba(0,255,136,0.03)}
+.btn-story-next{flex:1;background:transparent;border:none;color:var(--acid);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:12px 18px;cursor:pointer;transition:all 0.2s;min-height:44px;text-align:right}
+.btn-story-next:hover:not(:disabled){background:rgba(0,255,136,0.05)}
+.btn-story-next:disabled{opacity:0.25;cursor:not-allowed}
+.btn-skip-typing{flex:0 0 auto;background:transparent;border:none;border-left:1px solid rgba(0,255,136,0.1);color:rgba(0,255,136,0.25);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;padding:10px 14px;cursor:pointer;transition:all 0.2s;white-space:nowrap;display:none}
+.btn-skip-typing.visible{display:block}
+.btn-skip-typing:hover{color:rgba(0,255,136,0.5)}
+.auto-advance-bar-wrap{height:2px;background:rgba(0,255,136,0.06);overflow:hidden}
+.auto-advance-bar{height:100%;width:0;background:var(--acid-dim);opacity:0.5;transition:none}
+.auto-advance-bar.running{transition:width 4.5s linear}
+.btn-accept-mission{display:none;width:100%;padding:16px;background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,80,40,0.2));border:0;border-top:2px solid var(--acid-dim);color:var(--acid);font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.3s;align-items:center;justify-content:center;gap:10px;opacity:0;transform:translateY(10px)}
+.btn-accept-mission.slide-in{display:flex;animation:accept-in 0.55s cubic-bezier(0.22,1,0.36,1) forwards}
+@keyframes accept-in{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+.btn-accept-mission:hover{box-shadow:0 0 32px rgba(0,255,136,0.2)}
+.btn-accept-mission .accept-arrow{animation:accept-arrow-bounce 1.2s ease-in-out infinite}
+@keyframes accept-arrow-bounce{0%,100%{transform:translateX(0)}50%{transform:translateX(5px)}}
+
+/* ── VAULT SCENE ── */
+#screen-vault-scene{justify-content:center;background:var(--bg);padding:6px 8px 20px}
+.vault-scene-wrap{width:100%;max-width:720px;margin:0 auto}
+.vault-scene-card{background:#030608;border:1px solid rgba(0,255,136,0.18);position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.8);isolation:isolate}
+.vault-scene-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acid),transparent)}
+.vault-scene-scanlines{display:none}
+.vs-bottom{background:#030508;border-top:2px solid rgba(0,255,136,0.15);position:relative;z-index:0}
+.vs-character-bar{display:flex;align-items:stretch;border-bottom:1px solid rgba(0,255,136,0.08)}
+.vs-char{display:flex;align-items:center;gap:8px;padding:8px 14px;flex:1;position:relative;transition:all 0.3s}
+.vs-char.lyra-side{background:rgba(0,255,136,0.04);border-right:1px solid rgba(0,255,136,0.08)}
+.vs-char.sentinel-side{background:rgba(255,184,0,0.03)}
+.vs-char.lyra-side.speaking{background:rgba(0,255,136,0.08)}
+.vs-char.sentinel-side.speaking{background:rgba(255,184,0,0.07)}
+.vs-char-pulse{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.vs-char.lyra-side .vs-char-pulse{background:var(--acid);box-shadow:0 0 6px var(--acid);animation:npulse 1.2s ease-in-out infinite}
+.vs-char.sentinel-side .vs-char-pulse{background:var(--amber);box-shadow:0 0 6px var(--amber);animation:npulse 1.2s ease-in-out infinite 0.6s}
+.vs-char-pulse.active{animation:npulse-speak 0.5s ease-in-out infinite!important}
+.vs-char-name{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:3px}
+.vs-char.lyra-side .vs-char-name{color:var(--acid)}
+.vs-char.sentinel-side .vs-char-name{color:var(--amber)}
+.vs-char-role{font-size:7px;letter-spacing:2px;color:var(--text-mute);margin-left:auto;white-space:nowrap}
+.vs-speaking-badge{display:none!important}
+.vs-char.lyra-side .vs-speaking-badge{border:1px solid rgba(0,255,136,0.2);color:rgba(0,255,136,0.5)}
+.vs-char.sentinel-side .vs-speaking-badge{border:1px solid rgba(255,184,0,0.2);color:rgba(255,184,0,0.5)}
+.vs-char.speaking .vs-speaking-badge{display:inline-block}
+.vs-lyra-mood-tag{display:none!important}
+.vs-lyra-mood-tag.show{display:none!important}
+.vs-lyra-mood-tag.mood-calm{color:rgba(0,255,136,0.5);border-color:rgba(0,255,136,0.2)}
+.vs-lyra-mood-tag.mood-urgent{color:var(--amber);border-color:rgba(255,184,0,0.3)}
+.vs-lyra-mood-tag.mood-desperate{color:var(--danger);border-color:rgba(255,60,60,0.3)}
+.vs-lyra-mood-tag.mood-proud{color:#a8f0c8;border-color:rgba(168,240,200,0.3)}
+.vs-beat-counter{display:flex;gap:5px;align-items:center;padding:6px 18px 0}
+.vs-bdot{width:5px;height:5px;border-radius:50%;border:1px solid rgba(0,255,136,0.2);background:transparent;transition:all 0.25s}
+.vs-bdot.lyra-dot.active{background:var(--acid);border-color:var(--acid)}
+.vs-bdot.sentinel-dot.active{background:var(--amber);border-color:var(--amber)}
+.vs-bdot.done{background:rgba(0,255,136,0.25);border-color:rgba(0,255,136,0.25)}
+.vs-dialogue-box{padding:14px 18px 12px;min-height:110px;position:relative;user-select:none}
+.vs-speaker-label{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:3px;margin-bottom:6px;display:block}
+.vs-speaker-label.lyra{color:var(--acid);opacity:0.7}
+.vs-speaker-label.sentinel{color:var(--amber);opacity:0.7}
+.vs-dialogue-text{font-size:11.5px;line-height:1.85}
+.vs-dialogue-text.lyra-text{color:#c8e0cc}
+.vs-dialogue-text.sentinel-text{color:#e8dfc0}
+.vs-dialogue-cursor{display:inline-block;width:7px;height:13px;margin-left:2px;vertical-align:middle;animation:blink-c 0.7s step-end infinite}
+.vs-dialogue-cursor.lyra-cursor{background:var(--acid)}
+.vs-dialogue-cursor.sentinel-cursor{background:var(--amber)}
+.vs-footer{display:flex;flex-direction:column;gap:0;border-top:1px solid rgba(0,255,136,0.08)}
+.vs-footer-meta{display:flex;align-items:center;justify-content:space-between;padding:8px 14px 6px}
+.vs-vault-label{font-size:8px;letter-spacing:3px;color:rgba(0,255,136,0.25);white-space:nowrap}
+.vs-beat-dots{display:flex;gap:6px}
+.vs-sdot{width:6px;height:6px;border-radius:50%;border:1px solid rgba(0,255,136,0.25);background:transparent;transition:all 0.3s}
+.vs-sdot.active-lyra{background:var(--acid);border-color:var(--acid)}
+.vs-sdot.active-sentinel{background:var(--amber);border-color:var(--amber)}
+.vs-sdot.done{background:rgba(0,255,136,0.3);border-color:rgba(0,255,136,0.3)}
+.vs-footer-actions{display:flex;gap:0;border-top:1px solid rgba(0,255,136,0.06)}
+.btn-vs-skip{flex:0 0 auto;background:transparent;border:none;border-right:1px solid rgba(0,255,136,0.1);color:rgba(0,255,136,0.3);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;padding:10px 16px;cursor:pointer;transition:all 0.2s;white-space:nowrap;-webkit-tap-highlight-color:transparent;min-height:44px;touch-action:manipulation;}
+ .btn-vs-skip{position:relative;z-index:50;pointer-events:auto;}
+.btn-vs-skip:hover{color:rgba(0,255,136,0.6);background:rgba(0,255,136,0.03)}
+.btn-vs-next{flex:1;background:transparent;border:none;color:var(--acid);font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:12px 18px;cursor:pointer;transition:all 0.2s;min-height:44px;text-align:right}
+.btn-vs-next:hover:not(:disabled){background:rgba(0,255,136,0.05)}
+.btn-vs-next:disabled{opacity:0.25;cursor:not-allowed}
+.btn-vs-skip-typing{flex:0 0 auto;background:transparent;border:none;border-left:1px solid rgba(0,255,136,0.1);color:rgba(0,255,136,0.25);font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;padding:10px 14px;cursor:pointer;transition:all 0.2s;white-space:nowrap;display:none}
+.btn-vs-skip-typing.visible{display:block}
+.btn-vs-skip-typing:hover{color:rgba(0,255,136,0.5)}
+.vs-auto-advance-bar-wrap{height:2px;background:rgba(0,255,136,0.06);overflow:hidden}
+.vs-auto-advance-bar{height:100%;width:0;background:var(--acid-dim);opacity:0.5;transition:none}
+.vs-auto-advance-bar.running{transition:width 4.5s linear}
+.btn-proceed-briefing{display:none;width:100%;padding:16px;background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,80,40,0.2));border:0;border-top:2px solid var(--acid-dim);color:var(--acid);font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.3s;align-items:center;justify-content:center;gap:10px;opacity:0;transform:translateY(10px)}
+.btn-proceed-briefing.slide-in{display:flex;animation:accept-in 0.55s cubic-bezier(0.22,1,0.36,1) forwards}
+.btn-proceed-briefing:hover{box-shadow:0 0 32px rgba(0,255,136,0.2)}
+.btn-proceed-briefing .proceed-arrow{animation:accept-arrow-bounce 1.2s ease-in-out infinite}
+
+/* ── CONCEPT BRIDGE SCREEN ── */
+#screen-bridge{justify-content:flex-start;background:var(--bg);padding:8px 10px 20px}
+.bridge-wrap{width:100%;max-width:720px;margin:0 auto}
+.bridge-card{background:#030608;border:1px solid rgba(0,255,136,0.18);position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.8);animation:discReveal 0.35s cubic-bezier(0.22,1,0.36,1) both}
+@keyframes discReveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.bridge-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--amber),transparent)}
+.bridge-top-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:rgba(255,184,0,0.04);border-bottom:1px solid rgba(255,184,0,0.1)}
+.bridge-badge{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:3px;color:var(--amber);border:1px solid rgba(255,184,0,0.25);padding:2px 8px}
+.bridge-content{padding:24px 20px}
+.bridge-icon{font-size:40px;display:block;text-align:center;margin-bottom:14px;filter:drop-shadow(0 0 12px rgba(255,184,0,0.4))}
+.bridge-question-label{font-size:8px;letter-spacing:4px;color:rgba(255,184,0,0.5);text-align:center;margin-bottom:10px}
+.bridge-question{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--text);line-height:1.6;text-align:center;margin-bottom:20px}
+.bridge-options{display:flex;flex-direction:column;gap:8px}
+.bridge-option{background:var(--bg-2);border:1px solid var(--border);padding:12px 16px;cursor:pointer;font-size:16px;line-height:1.55;color:var(--text-dim);transition:all 0.2s;-webkit-tap-highlight-color:transparent;text-align:left}
+.bridge-option:hover{border-color:var(--border-mid);color:var(--text);background:rgba(0,255,136,0.03)}
+.bridge-option.selected-correct{border-color:var(--green);color:var(--green);background:rgba(61,220,132,0.06)}
+.bridge-option.selected-wrong{border-color:var(--red);color:var(--red);background:rgba(255,82,82,0.06)}
+.bridge-option.reveal-correct{border-color:var(--green);color:var(--green);background:rgba(61,220,132,0.04)}
+.bridge-explanation{padding:12px 16px;margin-top:8px;background:rgba(0,255,136,0.04);border:1px solid rgba(0,255,136,0.15);border-left:3px solid var(--acid-dim);font-size:11px;line-height:1.65;color:#c8e0cc;display:none}
+.bridge-explanation.show{display:block;animation:fadeSlide 0.3s ease}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.bridge-footer{padding:0 20px 20px}
+.btn-bridge-continue{display:none;width:100%;padding:14px;background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,80,40,0.2));border:2px solid var(--acid-dim);color:var(--acid);font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.3s;align-items:center;justify-content:center;gap:8px}
+.btn-bridge-continue.show{display:flex;animation:accept-in 0.4s ease forwards}
+.btn-bridge-continue:hover{box-shadow:0 0 24px rgba(0,255,136,0.2)}
+
+/* ── EMERGENCY MINI-VAULT BANNER ── */
+.emergency-banner{display:none;width:100%;background:rgba(255,60,60,0.08);border:1px solid rgba(255,60,60,0.3);border-left:3px solid var(--danger);padding:12px 16px;margin-bottom:12px;animation:emergency-flash 2s ease-in-out infinite;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.emergency-banner.show{display:flex;align-items:center;gap:12px}
+@keyframes emergency-flash{0%,100%{border-color:rgba(255,60,60,0.3);background:rgba(255,60,60,0.06)}50%{border-color:rgba(255,60,60,0.6);background:rgba(255,60,60,0.12)}}
+.eb-icon{font-size:20px;flex-shrink:0;animation:sigil-pulse 1s ease-in-out infinite}
+.eb-text{flex:1}
+.eb-title{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;color:var(--danger);margin-bottom:2px}
+.eb-sub{font-size:9px;color:rgba(255,60,60,0.6)}
+.eb-arrow{font-size:16px;color:var(--danger);animation:accept-arrow-bounce 1s ease-in-out infinite}
+
+/* ── MENU ── */
+#screen-menu{padding-bottom:80px;padding-top:8px}
+.menu-header{width:100%;text-align:center;padding:14px 16px 12px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(0,255,136,0.04) 0%,transparent 100%);position:relative;flex-shrink:0}
+.menu-header::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:160px;height:1px;background:linear-gradient(90deg,transparent,var(--acid),transparent)}
+.mh-eyebrow{font-size:8px;letter-spacing:5px;color:var(--acid-dim);border:1px solid rgba(0,255,136,0.15);display:inline-block;padding:3px 12px;margin-bottom:12px}
+.logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(22px,7vw,72px);color:var(--acid);letter-spacing:6px;line-height:1;text-shadow:0 0 60px var(--acid-glow),0 0 120px rgba(0,255,136,0.2)}
+.logo-sub{font-size:9px;letter-spacing:3px;color:var(--text-dim);margin-top:8px;line-height:1.5;padding:0 10px}
+.player-banner{display:flex;align-items:center;gap:10px;background:rgba(0,255,136,0.04);border:1px solid rgba(0,255,136,0.15);border-top:none;padding:8px 16px;max-width:480px;width:92%;margin:0 auto}
+.player-banner-icon{font-size:18px}
+.player-banner-name{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--acid);letter-spacing:2px;flex:1}
+.player-banner-badge{font-size:7px;letter-spacing:2px;color:var(--text-mute);border:1px solid var(--border);padding:2px 7px}
+.btn-lb-open{background:transparent;border:1px solid rgba(212,168,67,0.25);color:var(--gold-lite);font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:2px;padding:5px 10px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent}
+.btn-lb-open:hover{border-color:var(--gold-lite);box-shadow:0 0 12px var(--glow-gold)}
+.hud-bar{display:flex;align-items:center;background:var(--bg-2);border:1px solid var(--border);border-top:2px solid var(--acid-dim);padding:8px 0;margin:6px auto 10px;width:92%;max-width:480px}
+.hud-item{display:flex;align-items:center;gap:10px;flex:1;justify-content:center;padding:0 8px}
+.hud-icon{font-size:20px}
+.hud-val{font-family:'Orbitron',sans-serif;font-size:22px;color:var(--acid);text-shadow:0 0 16px var(--acid-glow);line-height:1}
+.hud-label{font-size:7px;letter-spacing:2px;color:var(--text-dim);margin-top:2px}
+.hud-divider{width:1px;height:40px;background:var(--border)}
+.mission-section-label{font-size:8px;letter-spacing:4px;color:var(--text-dim);margin-bottom:14px}
+.vault-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;width:100%;max-width:960px;padding:0 16px}
+.vault-card{position:relative;cursor:pointer;overflow:hidden;background:var(--bg-2);border:1px solid var(--border);padding:0;transition:all 0.3s cubic-bezier(0.22,1,0.36,1);-webkit-tap-highlight-color:transparent}
+.vault-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acid-dim),transparent);transition:background 0.3s}
+.vault-card:hover{border-color:var(--border-mid);transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.6),0 0 0 1px var(--border-mid)}
+.vault-card:active{transform:scale(0.98)}
+.vault-card.cracked{border-color:rgba(0,255,136,0.3)}
+.vault-card.locked-out{opacity:0.5;cursor:not-allowed}
+.vc-status-bar{padding:5px 12px;background:var(--bg-3);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.vc-vault-num{font-size:8px;letter-spacing:3px;color:var(--text-dim)}
+.vc-status-badge{font-size:7px;letter-spacing:2px;padding:2px 6px;border:1px solid var(--border);color:var(--text-dim)}
+.vc-status-badge.cracked{color:var(--acid);border-color:rgba(0,255,136,0.3)}
+.vc-status-badge.active-mission{color:var(--amber);border-color:rgba(255,184,0,0.3);animation:badge-pulse 2s ease-in-out infinite}
+@keyframes badge-pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.vc-body{padding:14px 12px 12px}
+.vc-icon{font-size:32px;margin-bottom:8px;display:block}
+.vc-name{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--acid);letter-spacing:0.5px;margin-bottom:5px;line-height:1.3}
+.vc-tagline{font-size:9px;color:var(--text-dim);line-height:1.5;margin-bottom:10px}
+.vc-steps-info{font-size:8px;letter-spacing:2px;color:var(--text-mute);margin-bottom:8px}
+.vc-stars{font-size:13px;color:rgba(0,255,136,0.2);letter-spacing:2px}
+.vc-stars .on{color:var(--acid)}
+.vc-prog-wrap{height:2px;background:var(--bg-4);margin-top:8px;overflow:hidden}
+.vc-prog-fill{height:100%;background:linear-gradient(90deg,var(--acid-dim),var(--acid));transition:width 0.6s}
+
+/* ── DISCUSSION ── */
+#screen-discussion{justify-content:flex-start;padding:8px 10px 20px}
+.discussion-wrap{width:100%;max-width:640px;margin:0 auto}
+.discussion-card{background:var(--bg-2);border:1px solid var(--border-mid);position:relative;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.03);animation:discReveal 0.35s cubic-bezier(0.22,1,0.36,1) both}
+.discussion-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acid),transparent)}
+.disc-top-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg-3)}
+.disc-badge{font-size:8px;letter-spacing:3px;color:var(--acid-dim);border:1px solid rgba(0,255,136,0.2);padding:2px 8px;background:rgba(0,255,136,0.05)}
+.disc-header-row{display:flex;align-items:center;gap:12px;padding:12px 14px 10px;border-bottom:1px solid var(--border)}
+.disc-vault-icon{font-size:32px;line-height:1;flex-shrink:0;filter:drop-shadow(0 0 10px rgba(0,255,136,0.45));animation:iconFloat 3s ease-in-out infinite}
+@keyframes iconFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+.disc-header-text{flex:1;min-width:0}
+.disc-label{font-size:7px;letter-spacing:3px;color:var(--text-dim);margin-bottom:3px}
+.disc-title{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;color:var(--acid);letter-spacing:0.5px;line-height:1.2;text-shadow:0 0 24px var(--acid-glow)}
+.disc-body{padding:12px 16px 14px;border-left:2px solid rgba(0,255,136,0.18);margin:0 14px 12px;position:relative}
+.disc-body p{font-size:12px;line-height:1.78;color:#c8d8c4;margin-bottom:8px}
+.disc-body p:last-child{margin-bottom:0}
+.disc-footer{padding:0 14px 14px}
+.btn-start-vault{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px 18px;width:100%;background:linear-gradient(135deg,rgba(0,255,136,0.1),rgba(0,80,40,0.2));border:2px solid var(--acid-dim);color:var(--acid);font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;-webkit-tap-highlight-color:transparent}
+.btn-start-vault:hover{border-color:var(--acid);box-shadow:0 0 28px rgba(0,255,136,0.2)}
+.btn-start-vault:active{transform:scale(0.98)}
+.bsv-arrow{animation:arrowPulse 1.5s ease-in-out infinite}
+@keyframes arrowPulse{0%,100%{transform:translateX(0);opacity:0.5}50%{transform:translateX(4px);opacity:1}}
+
+/* ── GAME ── */
+.game-topbar{width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--bg-2);border-bottom:1px solid var(--border);flex-shrink:0;position:sticky;top:0;z-index:20}
+.topbar-btn{background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;padding:7px 12px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;min-height:40px}
+.topbar-btn:hover{border-color:var(--acid-dim);color:var(--acid)}
+.topbar-title{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:var(--acid);letter-spacing:2px;text-align:center;flex:1;padding:0 8px}
+.topbar-score{font-size:11px;color:var(--text-dim);letter-spacing:1px;white-space:nowrap}
+.emergency-topbar-strip{width:100%;background:rgba(255,60,60,0.08);border-bottom:1px solid rgba(255,60,60,0.25);padding:4px 16px;display:none;align-items:center;gap:8px;flex-shrink:0}
+.emergency-topbar-strip.show{display:flex}
+.ets-pulse{width:7px;height:7px;border-radius:50%;background:var(--danger);animation:npulse 0.6s ease-in-out infinite;flex-shrink:0}
+.ets-label{font-family:'Orbitron',sans-serif;font-size:8px;letter-spacing:3px;color:var(--danger)}
+.ets-sub{font-size:8px;letter-spacing:2px;color:rgba(255,60,60,0.5);margin-left:auto}
+.game-layout{display:flex;flex-direction:column;gap:16px;width:100%;max-width:1080px;padding:14px 14px 60px;align-items:stretch}
+.game-left{display:flex;flex-direction:column;gap:12px}
+.howto-banner{display:flex;gap:10px;align-items:flex-start;background:rgba(0,255,136,0.03);border:1px solid var(--border);border-left:3px solid var(--acid-dim);padding:10px 12px}
+.howto-icon{font-size:18px;flex-shrink:0}
+.howto-title{font-size:8px;letter-spacing:3px;color:var(--acid);margin-bottom:4px}
+.howto-text{font-size:10px;color:var(--text-dim);line-height:1.6}
+.howto-text strong{color:var(--amber)}
+.topic-card{background:var(--bg-2);border:1px solid var(--border);border-left:3px solid var(--acid-dim);padding:14px 16px;position:relative;overflow:hidden}
+.topic-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.topic-progress{font-size:9px;letter-spacing:2px;color:var(--text-dim)}
+.topic-tag{font-size:7px;letter-spacing:2px;background:rgba(0,255,136,0.1);color:var(--acid);padding:3px 8px;border:1px solid var(--border)}
+.topic-title-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:5px}
+.topic-lock-icon{font-size:16px;flex-shrink:0}
+.topic-title{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--text);line-height:1.3}
+.topic-subtitle{font-size:10px;color:var(--text-dim)}
+.hl{color:var(--amber)}
+.clue-table-wrap{background:var(--bg-2);border:1px solid var(--border);overflow:hidden;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.clue-table{width:100%;border-collapse:collapse;font-family:'Share Tech Mono',monospace;min-width:280px}
+.ct-head-step,.ct-head-desc{padding:8px 10px;text-align:left;font-size:8px;letter-spacing:3px;color:var(--acid);background:var(--bg-3);border-bottom:1px solid var(--border-mid)}
+.ct-head-step{width:58px;text-align:center;border-right:1px solid var(--border)}
+.clue-table tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
+.clue-table tbody tr:last-child{border-bottom:none}
+.clue-table tbody tr:hover{background:var(--acid-ghost)}
+.ct-code{text-align:center;padding:10px 6px;border-right:1px solid var(--border);vertical-align:middle}
+.code-badge{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:3px;font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;background:var(--bg-3);border:2px solid var(--border);color:var(--acid);line-height:1;text-shadow:0 0 10px var(--acid-glow);transition:all 0.2s}
+.code-badge.done{background:rgba(0,255,136,0.08);border-color:var(--acid);color:var(--acid);box-shadow:0 0 12px var(--acid-glow)}
+.ct-desc{padding:10px 12px;font-size:11px;line-height:1.55;color:var(--text);vertical-align:middle}
+.ct-desc .step-bold{color:var(--text);font-weight:bold}
+.slot-feedback-row{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;min-height:18px}
+.slot-fb{font-size:8px;letter-spacing:2px;padding:2px 8px;border:1px solid transparent;transition:all 0.3s}
+.slot-fb.correct{color:var(--green);border-color:rgba(61,220,132,0.3);background:rgba(61,220,132,0.06)}
+.slot-fb.wrong{color:var(--red);border-color:rgba(255,82,82,0.25);background:rgba(255,82,82,0.05)}
+.slot-fb.empty{color:var(--text-mute);border-color:var(--bg-5)}
+.micro-lesson{display:none;padding:10px 14px;background:rgba(255,184,0,0.05);border:1px solid rgba(255,184,0,0.2);border-left:3px solid var(--amber);margin-top:4px;animation:fadeSlide 0.3s ease}
+.micro-lesson.show{display:block}
+.ml-title{font-size:8px;letter-spacing:3px;color:var(--amber);margin-bottom:5px}
+.ml-body{font-size:11px;line-height:1.65;color:#e8dfc0}
+.answer-key-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(255,60,60,0.06);border:1px solid rgba(255,60,60,0.25);padding:10px 12px}
+.ak-label{font-size:8px;letter-spacing:2px;color:var(--red)}
+.ak-codes{font-family:'Orbitron',sans-serif;font-size:15px;color:var(--red);letter-spacing:3px}
+.hint-panel{background:rgba(96,165,250,0.05);border:1px solid rgba(96,165,250,0.2);border-left:3px solid var(--blue);padding:10px 12px;animation:fadeSlide 0.3s ease}
+.hint-panel-title{font-size:8px;letter-spacing:3px;color:var(--blue);margin-bottom:5px}
+.hint-panel-body{font-size:11px;line-height:1.65;color:var(--text)}
+.hint-panel-body strong{color:var(--amber)}
+.game-right{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.vault-door{position:relative;width:100%;background:linear-gradient(160deg,#080e14 0%,#030608 100%);border:2px solid var(--border-mid);padding:14px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;box-shadow:0 0 0 1px rgba(0,0,0,0.9),0 0 60px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.03)}
+.vault-door::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acid),transparent)}
+.door-rivet{position:absolute;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#2a3830,#080e10);border:1px solid rgba(0,255,136,0.2);box-shadow:0 1px 3px rgba(0,0,0,0.6)}
+.door-rivet.tl{top:7px;left:7px}.door-rivet.tr{top:7px;right:7px}.door-rivet.bl{bottom:7px;left:7px}.door-rivet.br{bottom:7px;right:7px}
+.vault-door-title{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:3px;color:rgba(0,255,136,0.5)}
+.combo-label-top{font-size:7px;letter-spacing:3px;color:var(--text-mute);margin-bottom:-4px}
+.combo-row{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.ans-slot{width:34px;height:42px;background:#020406;border:2px solid var(--bg-5);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;color:var(--text-mute);box-shadow:inset 0 2px 8px rgba(0,0,0,0.8);transition:all 0.2s}
+.ans-slot.active-slot{border-color:var(--acid-dim);color:var(--acid);box-shadow:inset 0 2px 8px rgba(0,0,0,0.8),0 0 10px var(--acid-glow);animation:slot-pulse 1.2s ease-in-out infinite}
+.ans-slot.filled{color:var(--acid);border-color:var(--acid);box-shadow:inset 0 2px 8px rgba(0,0,0,0.8),0 0 12px var(--acid-glow);animation:none}
+.ans-slot.flash-correct{color:var(--green);border-color:var(--green);box-shadow:0 0 16px var(--green-glow);animation:none}
+.ans-slot.flash-wrong{color:var(--red);border-color:var(--red);box-shadow:0 0 16px var(--red-glow);animation:none}
+.ans-slot.persist-correct{color:var(--green);border-color:rgba(61,220,132,0.5);box-shadow:0 0 8px var(--green-glow);animation:none}
+.ans-slot.persist-wrong{color:var(--red);border-color:rgba(255,82,82,0.4);animation:none}
+@keyframes slot-pulse{0%,100%{box-shadow:inset 0 2px 8px rgba(0,0,0,0.8),0 0 6px var(--acid-glow)}50%{box-shadow:inset 0 2px 8px rgba(0,0,0,0.8),0 0 18px var(--acid-glow)}}
+.dial-assembly{position:relative;display:flex;align-items:center;justify-content:center;width:var(--dial-size);height:var(--dial-size)}
+.notch-arrow-wrap{position:absolute;top:-4px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;z-index:30;pointer-events:none}
+.notch-triangle{width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:18px solid var(--acid);filter:drop-shadow(0 0 8px var(--acid));animation:notch-glow 2s ease-in-out infinite}
+@keyframes notch-glow{0%,100%{filter:drop-shadow(0 0 6px var(--acid))}50%{filter:drop-shadow(0 0 18px var(--acid)) drop-shadow(0 0 30px var(--acid))}}
+.notch-line{width:2px;height:12px;background:linear-gradient(to bottom,var(--acid),transparent);margin-top:-1px}
+.dial-outer-ring{width:var(--dial-size);height:var(--dial-size);border-radius:50%;background:conic-gradient(from 0deg,#0c1410 0%,#080e0c 25%,#0c1410 50%,#080e0c 75%,#0c1410 100%);padding:7px;box-shadow:0 0 0 2px rgba(0,255,136,0.2),0 0 0 4px #020406,0 0 0 6px rgba(0,255,136,0.05),0 0 50px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.03)}
+.dial-body{width:calc(var(--dial-size) - 14px);height:calc(var(--dial-size) - 14px);border-radius:50%;cursor:grab;user-select:none;position:relative;background:radial-gradient(circle at 38% 30%,#0e1c14,#050a07);box-shadow:inset 0 2px 10px rgba(0,0,0,0.8),inset 0 -2px 4px rgba(0,255,136,0.02);touch-action:none}
+.dial-body:active{cursor:grabbing}
+.dial-body canvas{position:absolute;inset:0;border-radius:50%;width:100%;height:100%}
+.dial-hub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:54px;height:54px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#1a2a1e,#060e08);border:3px solid rgba(0,255,136,0.25);box-shadow:0 0 0 2px #020406,0 0 18px rgba(0,0,0,0.9);z-index:10;display:flex;align-items:center;justify-content:center}
+.dial-hub-ring{position:absolute;inset:5px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1e2e22,#080e0a);border:1px solid rgba(0,255,136,0.12)}
+.dial-hub-icon{position:relative;font-size:18px;z-index:1}
+.snap-readout{display:flex;flex-direction:column;align-items:center;gap:2px}
+.snap-label{font-size:7px;letter-spacing:3px;color:var(--text-mute)}
+.snap-val{font-family:'Orbitron',sans-serif;font-size:36px;font-weight:700;line-height:1;color:var(--text-mute);transition:all 0.15s;min-width:50px;text-align:center}
+.snap-val.lit{color:var(--acid);text-shadow:0 0 24px var(--acid-glow),0 0 48px rgba(0,255,136,0.3)}
+.attempts-wrap{display:flex;flex-direction:column;align-items:center;gap:5px}
+.attempts-label{font-size:7px;letter-spacing:3px;color:var(--text-mute)}
+.attempts-row{display:flex;gap:8px}
+.pip{width:13px;height:13px;border-radius:50%;border:2px solid var(--bg-5);background:var(--bg-3);transition:all 0.25s}
+.pip.ok{background:var(--green);border-color:var(--green);box-shadow:0 0 8px var(--green-glow)}
+.pip.used{background:var(--red);border-color:var(--red);box-shadow:0 0 8px var(--red-glow)}
+.action-row{display:flex;gap:8px;width:100%}
+.btn-lockin{flex:3 0 0;min-width:0;padding:16px;background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,80,40,0.2));border:2px solid var(--acid-dim);color:var(--acid);font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;letter-spacing:3px;cursor:pointer;position:relative;overflow:hidden;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent;min-height:52px}
+.btn-lockin:hover{box-shadow:0 0 32px var(--acid-glow)}
+.btn-lockin:active{transform:scale(0.97)}
+.btn-lockin:disabled{opacity:0.2;cursor:not-allowed}
+.btn-hint{flex:1 0 56px;padding:16px;background:rgba(96,165,250,0.06);border:2px solid rgba(96,165,250,0.18);color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;min-height:52px}
+.btn-hint:hover{background:rgba(96,165,250,0.12);border-color:var(--blue)}
+.btn-hint.active{background:rgba(96,165,250,0.14);border-color:var(--blue)}
+.btn-hint:disabled{opacity:0.35;cursor:not-allowed;background:rgba(96,165,250,0.04)}
+.btn-clear{flex:1 0 56px;padding:16px;background:transparent;border:2px solid var(--bg-5);color:var(--text-dim);font-family:'Orbitron',sans-serif;font-size:16px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;min-height:52px}
+.btn-clear:hover{border-color:var(--red);color:var(--red)}
+.btn-undo{flex:1 0 56px;padding:16px;background:transparent;border:2px solid rgba(255,184,0,0.2);color:var(--amber);font-family:'Orbitron',sans-serif;font-size:16px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;min-height:52px}
+.btn-undo:hover{border-color:var(--amber);color:var(--amber)}
+.btn-undo:disabled{opacity:0.2;cursor:not-allowed}
+.result-msg{width:100%;text-align:center;padding:10px 12px;font-size:10px;letter-spacing:1px;line-height:1.6;border:1px solid transparent;min-height:38px;display:flex;align-items:center;justify-content:center;transition:all 0.25s}
+.result-msg.correct{border-color:rgba(0,255,136,0.25);color:var(--acid);background:rgba(0,255,136,0.05)}
+.result-msg.wrong{border-color:rgba(255,82,82,0.25);color:var(--red);background:rgba(255,82,82,0.05)}
+.mission-timer{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:998;display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);padding:5px 14px;opacity:0;pointer-events:none;transition:opacity 0.5s;white-space:nowrap}
+.mission-timer.visible{opacity:1;pointer-events:all}
+.timer-label{font-size:7px;letter-spacing:4px;color:var(--text-dim)}
+.timer-display{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:var(--acid);text-shadow:0 0 12px var(--acid-glow);min-width:56px;text-align:center;transition:color 0.5s}
+.timer-display.phase-end{color:var(--danger);text-shadow:0 0 12px var(--danger-glow);animation:timer-pulse 1s ease-in-out infinite}
+@keyframes timer-pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+.overlay{position:fixed;inset:0;z-index:200;background:rgba(3,5,8,0.94);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.4s;backdrop-filter:blur(10px);padding:16px}
+.overlay.show{opacity:1;pointer-events:all}
+.overlay-card{position:relative;overflow:hidden;background:linear-gradient(160deg,var(--bg-3),var(--bg-2));border:1px solid var(--border-mid);padding:32px 28px calc(32px + env(safe-area-inset-bottom, 12px));text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;max-width:520px;width:100%;transform:translateY(22px) scale(0.97);transition:all 0.4s cubic-bezier(0.22,1,0.36,1);box-shadow:0 40px 80px rgba(0,0,0,0.8);max-height:90vh;overflow-y:auto;scroll-padding-bottom:20px}
+.overlay.show .overlay-card{transform:translateY(0) scale(1)}
+.overlay-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--acid),transparent)}
+.overlay-icon{font-size:56px;position:relative;z-index:1}
+.overlay-title{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--acid);letter-spacing:4px;text-shadow:0 0 30px var(--acid-glow)}
+.overlay-title.fail{color:var(--red);text-shadow:0 0 30px var(--red-glow)}
+.overlay-title.victory{color:var(--gold-lite);text-shadow:0 0 30px var(--glow-gold)}
+.overlay-story-beat{font-size:11px;line-height:1.75;color:#c8e0cc;text-align:left;background:rgba(0,255,136,0.04);border:1px solid rgba(0,255,136,0.12);border-left:3px solid var(--acid-dim);padding:12px 14px;width:100%;font-style:italic}
+.overlay-story-beat.fail-beat{border-left-color:var(--red);background:rgba(255,60,60,0.04);border-color:rgba(255,60,60,0.15);color:#e0c8c8}
+.overlay-correct{font-size:11px;line-height:1.8;color:var(--text-dim);text-align:left;background:var(--bg-3);border:1px solid var(--border);padding:10px 14px;width:100%}
+.overlay-correct .step-line{display:flex;gap:10px;align-items:flex-start;margin-bottom:4px}
+.overlay-correct .step-line:last-child{margin-bottom:0}
+.overlay-correct .step-num{color:var(--acid);font-family:'Orbitron',sans-serif;font-size:10px;min-width:30px}
+.overlay-correct .step-num.fail{color:var(--red)}
+.overlay-correct .step-txt{color:var(--text);font-size:10px;line-height:1.5}
+.overlay-sub{font-size:11px;color:var(--text-dim);letter-spacing:1px}
+.overlay-pts{font-family:'Orbitron',sans-serif;font-size:38px;font-weight:900;color:var(--acid);text-shadow:0 0 20px var(--acid-glow)}
+.overlay-time{font-size:10px;color:var(--text-dim);letter-spacing:2px;border:1px solid var(--border);padding:4px 12px}
+.overlay-btns{display:flex;gap:10px;margin-top:4px;width:100%}
+.btn-ov-next{flex:3;padding:14px 16px;background:linear-gradient(135deg,rgba(0,255,136,0.1),rgba(0,80,40,0.2));border:2px solid var(--acid-dim);color:var(--acid);font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;min-height:48px}
+.btn-ov-next:hover{border-color:var(--acid);box-shadow:0 0 24px rgba(0,255,136,0.2)}
+.btn-ov-menu{flex:1;padding:14px;background:transparent;border:2px solid var(--bg-5);color:var(--text-dim);font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:1px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;min-height:48px}
+.btn-ov-menu:hover{border-color:var(--text-dim);color:var(--text)}
+@keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-10px)}35%{transform:translateX(10px)}55%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.shake{animation:shake 0.4s ease}
+@keyframes snap-fx{0%{transform:scale(1)}35%{transform:scale(0.965)}65%{transform:scale(1.018)}100%{transform:scale(1)}}
+.dial-snap-fx{animation:snap-fx 0.2s ease}
+@keyframes door-open{to{transform:perspective(900px) rotateY(-45deg) translateX(-26px);opacity:0.2}}
+.door-opening{animation:door-open 1s cubic-bezier(0.22,1,0.36,1) forwards}
+#screen-victory{position:fixed;inset:0;z-index:300;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.8s ease;padding:24px;overflow-y:auto}
+#screen-victory.active{display:flex;opacity:1}
+.victory-bg-rings{position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.vring{position:absolute;border-radius:50%;border:1px solid rgba(0,255,136,0.08);animation:vring-expand 6s ease-out infinite}
+.vring:nth-child(1){width:200px;height:200px;animation-delay:0s}.vring:nth-child(2){width:400px;height:400px;animation-delay:0.8s}.vring:nth-child(3){width:600px;height:600px;animation-delay:1.6s}.vring:nth-child(4){width:800px;height:800px;animation-delay:2.4s}
+@keyframes vring-expand{0%{opacity:0;transform:scale(0.6)}40%{opacity:1}100%{opacity:0;transform:scale(1.1)}}
+.victory-card{position:relative;z-index:10;width:100%;max-width:600px;background:#030608;border:1px solid rgba(0,255,136,0.3);box-shadow:0 0 80px rgba(0,255,136,0.12),0 40px 80px rgba(0,0,0,0.9);overflow:hidden;animation:victory-rise 0.8s cubic-bezier(0.22,1,0.36,1) both}
+@keyframes victory-rise{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.victory-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--acid),var(--gold-lite),var(--acid),transparent);animation:victory-shimmer 2s linear infinite}
+@keyframes victory-shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+.victory-scene-bar{padding:6px 12px;background:rgba(0,255,136,0.04);border-bottom:1px solid rgba(0,255,136,0.1);font-size:8px;letter-spacing:4px;color:var(--acid-dim);display:flex;align-items:center;gap:8px}
+.victory-scene-dot{width:6px;height:6px;border-radius:50%;background:var(--acid);box-shadow:0 0 8px var(--acid);animation:npulse 1.2s ease-in-out infinite}
+.victory-hero{padding:32px 24px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.victory-trophy{font-size:72px;animation:trophy-bounce 2s ease-in-out infinite;filter:drop-shadow(0 0 24px rgba(0,255,136,0.5))}
+@keyframes trophy-bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-8px) scale(1.04)}}
+.victory-headline{font-family:'Orbitron',sans-serif;font-size:clamp(18px,5vw,32px);font-weight:900;color:var(--acid);letter-spacing:4px;text-shadow:0 0 40px var(--acid-glow),0 0 80px rgba(0,255,136,0.2);line-height:1.2}
+.victory-sub-headline{font-size:9px;letter-spacing:5px;color:var(--text-dim);margin-top:-6px}
+.victory-stats{display:flex;gap:0;border:1px solid rgba(0,255,136,0.15);background:var(--bg-2);margin:0 24px}
+.vstat{flex:1;padding:12px 8px;text-align:center;border-right:1px solid rgba(0,255,136,0.1)}
+.vstat:last-child{border-right:none}
+.vstat-val{font-family:'Orbitron',sans-serif;font-size:22px;color:var(--acid);text-shadow:0 0 14px var(--acid-glow);display:block}
+.vstat-label{font-size:7px;letter-spacing:2px;color:var(--text-mute);margin-top:3px;display:block}
+.victory-narrative{margin:0 24px;padding:14px 16px;border-left:3px solid var(--acid-dim);background:rgba(0,255,136,0.03);font-size:12px;line-height:1.85;color:#c8e0cc;font-style:italic}
+.victory-narrative strong{color:var(--acid);font-style:normal}
+.victory-footer{padding:16px 24px 24px;display:flex;flex-direction:column;gap:10px}
+.victory-formula-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-3);border:1px solid rgba(0,255,136,0.15)}
+.vfb-label{font-size:8px;letter-spacing:3px;color:var(--acid-dim);white-space:nowrap}
+.vfb-icons{display:flex;gap:8px;font-size:18px}
+.vfb-check{margin-left:auto;color:var(--acid);font-size:14px}
+.btn-victory-restart{width:100%;padding:16px;background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,80,40,0.2));border:2px solid var(--acid-dim);color:var(--acid);font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent}
+.btn-victory-restart:hover{box-shadow:0 0 32px rgba(0,255,136,0.2);border-color:var(--acid)}
+#screen-fail{position:fixed;inset:0;z-index:300;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;opacity:0;transition:opacity 0.8s ease;padding:24px;overflow-y:auto}
+#screen-fail.active{display:flex;opacity:1}
+.fail-bg{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 30%,rgba(255,60,60,0.06) 0%,transparent 60%);animation:fail-pulse-bg 3s ease-in-out infinite}
+@keyframes fail-pulse-bg{0%,100%{opacity:0.5}50%{opacity:1}}
+.fail-static{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,60,60,0.015) 0px,rgba(255,60,60,0.015) 1px,transparent 1px,transparent 4px);animation:fail-static-drift 0.8s linear infinite}
+@keyframes fail-static-drift{0%{background-position:0 0}100%{background-position:0 4px}}
+.fail-card{position:relative;z-index:10;width:100%;max-width:600px;background:#030508;border:1px solid rgba(255,60,60,0.3);box-shadow:0 0 60px rgba(255,60,60,0.1),0 40px 80px rgba(0,0,0,0.9);overflow:hidden;animation:fail-drop 0.8s cubic-bezier(0.22,1,0.36,1) both}
+@keyframes fail-drop{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.fail-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--danger),transparent)}
+.fail-top-bar{padding:6px 12px;background:rgba(255,60,60,0.05);border-bottom:1px solid rgba(255,60,60,0.12);font-size:8px;letter-spacing:4px;color:rgba(255,60,60,0.5);display:flex;align-items:center;gap:8px}
+.fail-top-dot{width:6px;height:6px;border-radius:50%;background:var(--danger);box-shadow:0 0 8px var(--danger);animation:npulse 0.8s ease-in-out infinite}
+.fail-hero{padding:32px 24px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.fail-icon{font-size:64px;animation:fail-icon-shake 4s ease-in-out infinite}
+@keyframes fail-icon-shake{0%,85%,100%{transform:rotate(0)}87%{transform:rotate(-4deg)}89%{transform:rotate(4deg)}91%{transform:rotate(-3deg)}93%{transform:rotate(3deg)}95%{transform:rotate(0)}}
+.fail-headline{font-family:'Orbitron',sans-serif;font-size:clamp(16px,4.5vw,28px);font-weight:900;color:var(--danger);letter-spacing:3px;text-shadow:0 0 30px var(--danger-glow);line-height:1.2}
+.fail-sub-headline{font-size:9px;letter-spacing:4px;color:rgba(255,60,60,0.45);margin-top:-6px}
+.fail-timer-readout{font-family:'Orbitron',sans-serif;font-size:42px;font-weight:900;color:var(--danger);letter-spacing:4px;text-shadow:0 0 20px var(--danger-glow);border:1px solid rgba(255,60,60,0.2);padding:10px 28px;background:rgba(255,60,60,0.04)}
+.fail-timer-label{font-size:8px;letter-spacing:4px;color:rgba(255,60,60,0.35);margin-top:-8px}
+.fail-narrative{margin:0 24px;padding:14px 16px;border-left:3px solid rgba(255,60,60,0.4);background:rgba(255,60,60,0.04);font-size:12px;line-height:1.85;color:#e0c8c8;font-style:italic}
+.fail-progress{margin:0 24px;display:flex;flex-direction:column;gap:6px}
+.fail-progress-label{font-size:8px;letter-spacing:3px;color:rgba(255,60,60,0.45)}
+.fail-vault-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg-2);border:1px solid rgba(255,60,60,0.1)}
+.fail-vault-icon{font-size:20px}
+.fail-vault-name{flex:1;font-size:10px;letter-spacing:1px;color:var(--text-dim)}
+.fail-vault-status{font-size:9px;letter-spacing:2px}
+.fail-vault-status.done{color:var(--acid)}
+.fail-vault-status.undone{color:rgba(255,60,60,0.5)}
+.fail-footer{padding:16px 24px 24px;display:flex;flex-direction:column;gap:10px}
+.btn-fail-retry{width:100%;padding:16px;background:linear-gradient(135deg,rgba(255,60,60,0.1),rgba(80,0,0,0.2));border:2px solid rgba(255,60,60,0.4);color:var(--danger);font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:10px;-webkit-tap-highlight-color:transparent}
+.btn-fail-retry:hover{box-shadow:0 0 24px var(--danger-glow);border-color:var(--danger)}
+.btn-fail-menu{width:100%;padding:12px;background:transparent;border:1px solid rgba(255,60,60,0.15);color:rgba(255,60,60,0.4);font-family:'Orbitron',sans-serif;font-size:11px;letter-spacing:2px;cursor:pointer;transition:all 0.2s}
+.btn-fail-menu:hover{border-color:rgba(255,60,60,0.35);color:rgba(255,60,60,0.7)}
+.sr-flag{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--amber);margin-left:6px;vertical-align:middle;box-shadow:0 0 4px var(--amber-glow)}
+@media(max-width:360px){:root{--dial-size:clamp(190px, 68vw, 220px)}.logo{font-size:26px;letter-spacing:4px}.hud-val{font-size:18px}.ans-slot{width:28px;height:36px;font-size:13px}.overlay-card{padding:24px 18px}}
+@media(min-width:560px){
+  .game-layout{display:grid;grid-template-columns:1fr 340px;gap:12px;padding:12px;align-items:start}
+  .game-right{position:sticky;top:72px}
+}
+@media(min-width:760px){
+  body{overflow:hidden}
+  .screen{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden}
+  .game-layout{grid-template-columns:1fr 420px;gap:18px;padding:18px 20px}
+  .game-right{top:88px}
+  .vault-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;padding:0 24px}
+  .logo{font-size:clamp(36px,7vw,72px);letter-spacing:10px}
+}
+@media(max-height:500px) and (orientation:landscape){.howto-banner{display:none}.snap-val{font-size:28px}.btn-lockin,.btn-hint,.btn-clear{padding:10px;min-height:42px}}
+@media(max-width:480px){.story-card{min-height:400px}.scene-bottom-fade{height:160px}.dialogue-text{font-size:11px}.lb-cols,.lb-entry{grid-template-columns:32px 1fr 70px 60px 40px 50px}.lb-col-head,.lb-best,.lb-time{font-size:6px}.lb-name{font-size:9px}.lb-avg{font-size:10px}}
+</style>
+</head>
+<body>
+<div id="screen-access" style="position:fixed;inset:0;z-index:10000;background:radial-gradient(ellipse at 50% 40%,#0a1410 0%,#030508 70%);display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;color:#00ff88;font-family:'Orbitron',sans-serif;text-align:center;padding:24px;overflow:hidden;opacity:0;transition:opacity 0.4s;">
+  <div style="position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,255,136,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,0.025) 1px,transparent 1px);background-size:48px 48px;"></div>
+  <div style="position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,0.08) 0px,rgba(0,0,0,0.08) 1px,transparent 1px,transparent 3px);"></div>
+  <div style="position:relative;width:90px;height:90px;border-radius:50%;border:2px solid rgba(0,255,136,0.4);display:flex;align-items:center;justify-content:center;animation:access-breathe 3s ease-in-out infinite;background:rgba(3,5,8,0.6);">
+    <div style="position:absolute;inset:-10px;border-radius:50%;border:1px solid rgba(0,255,136,0.15);animation:access-breathe 3s ease-in-out infinite 0.5s;"></div>
+    <div style="position:absolute;inset:-20px;border-radius:50%;border:1px solid rgba(0,255,136,0.07);animation:access-breathe 3s ease-in-out infinite 1s;"></div>
+    <div style="font-size:38px;filter:drop-shadow(0 0 12px rgba(0,255,136,0.5));">🔐</div>
+  </div>
+  <div style="position:relative;font-size:14px;letter-spacing:6px;text-shadow:0 0 30px rgba(0,255,136,0.5);">SENTINEL DIVISION</div>
+  <div style="position:relative;font-size:9px;letter-spacing:4px;color:rgba(0,255,136,0.4);border:1px solid rgba(0,255,136,0.15);padding:3px 12px;">ACCESS CONTROL — RESTRICTED CHANNEL</div>
+  <div style="position:relative;font-size:9px;letter-spacing:2px;color:#5a7a64;max-width:300px;line-height:1.8;">Enter the access code provided by your instructor to establish a secure connection.</div>
+  <div style="position:relative;width:240px;">
+    <input id="access-code-input" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="• • • • • • • •" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')checkAccessCode()" style="width:100%;background:#0a1018;border:2px solid rgba(0,255,136,0.25);color:#00ff88;padding:14px 10px;font-size:15px;text-align:center;letter-spacing:3px;font-family:'Orbitron',sans-serif;outline:none;transition:all 0.2s;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6);box-sizing:border-box;">
+  </div>
+  <button onclick="checkAccessCode()" style="position:relative;background:linear-gradient(135deg,rgba(0,255,136,0.12),rgba(0,80,40,0.2));border:2px solid rgba(0,255,136,0.4);color:#00ff88;padding:14px 32px;font-size:12px;font-weight:700;letter-spacing:3px;cursor:pointer;font-family:'Orbitron',sans-serif;transition:all 0.25s;">⚡ VERIFY ACCESS →</button>
+  <div id="access-error" style="position:relative;color:#ff5252;font-size:9px;letter-spacing:2px;min-height:14px;text-shadow:0 0 8px rgba(255,82,82,0.5);"></div>
+  <div style="position:absolute;bottom:16px;font-size:7px;letter-spacing:4px;color:rgba(0,255,136,0.15);">BIO-VAULT 38 // YEAR 2085</div>
+</div>
+<style>
+@keyframes access-breathe{0%,100%{box-shadow:0 0 10px rgba(0,255,136,0.15)}50%{box-shadow:0 0 30px rgba(0,255,136,0.35)}}
+#access-code-input:focus{border-color:rgba(0,255,136,0.6)!important;box-shadow:inset 0 2px 8px rgba(0,0,0,0.6),0 0 20px rgba(0,255,136,0.15)!important}
+#access-code-input::placeholder{color:rgba(0,255,136,0.15);letter-spacing:8px}
+button:hover{border-color:#00ff88!important;box-shadow:0 0 24px rgba(0,255,136,0.25)}
+button:active{transform:scale(0.97)}
+</style>
+<script>
+  const VALID_ACCESS_CODES = ['BIOVAULT2026','SENTINEL38']; // ← add/edit your class codes here
+  function checkAccessCode(){
+    const input = document.getElementById('access-code-input');
+    const code = input.value.trim().toUpperCase();
+    if(VALID_ACCESS_CODES.includes(code)){
+      const gate = document.getElementById('screen-access');
+      gate.style.opacity='0';
+      setTimeout(()=>{
+        gate.style.display='none';
+        if(typeof App !== 'undefined' && App._startAfterAccess) App._startAfterAccess();
+      }, 420);
+    } else {
+      document.getElementById('access-error').textContent='⚠ INVALID ACCESS CODE';
+      input.value='';
+      setTimeout(()=>{ document.getElementById('access-error').textContent=''; }, 2200);
+    }
+}
+</script>
+<div class="bg-grid"></div>
+<audio id="bg-music" loop preload="auto" src="leberch-cyberpunk-drone-375259.mp3"></audio>
+<div class="particles" id="particles"></div>
+<div class="phase-flash" id="phase-flash"></div>
+
+<div class="top-controls">
+  <button class="ctrl-btn" id="voice-toggle" onclick="App.toggleVoice()" title="Toggle Voiceover">🎙️</button>
+  <button class="ctrl-btn" id="music-toggle" onclick="App.toggleMusic()" title="Toggle Music">🔊</button>
+</div>
+
+<div class="mission-timer" id="mission-timer">
+  <span class="timer-label">MISSION</span>
+  <span class="timer-display" id="timer-display">00:00</span>
+</div>
+
+<div class="voice-indicator" id="voice-indicator">
+  <div class="vi-bars"><div class="vi-bar"></div><div class="vi-bar"></div><div class="vi-bar"></div><div class="vi-bar"></div><div class="vi-bar"></div></div>
+  <span class="vi-label">TRANSMITTING</span>
+  <span class="vi-speaker" id="vi-speaker-name">LYRA</span>
+</div>
+
+<!-- BOOT -->
+<div id="screen-boot" onclick="App.bootTap()" style="cursor:pointer;z-index:9000">
+  <div id="inapp-warning" style="display:none;background:rgba(255,184,0,0.12);border:1px solid rgba(255,184,0,0.5);padding:12px 16px;margin:0 16px 20px;text-align:center;font-size:11px;letter-spacing:2px;line-height:1.8;color:#ffb800;">
+    ⚠ FOR FULL AUDIO — OPEN IN CHROME OR SAFARI<br>
+    <span style="font-size:9px;color:rgba(255,184,0,0.6);">Tap the menu (⋮) → Open in browser</span>
+  </div>
+  <div class="boot-sigil">📡</div>
+  <div class="boot-label">SENTINEL DIVISION</div>
+  <div class="boot-bar-wrap"><div class="boot-bar-fill" id="boot-bar"></div></div>
+  <div class="boot-status" id="boot-status">ESTABLISHING SECURE CHANNEL…</div>
+  <div id="boot-tap-hint" style="font-size:8px;letter-spacing:4px;color:rgba(0,255,136,0.25);margin-top:8px;opacity:0;transition:opacity 0.6s">TAP TO BEGIN</div>
+</div>
+
+<!-- NAME ENTRY -->
+<div id="screen-nameentry" style="display:none">
+  <div class="ne-card">
+    <div class="ne-top">
+      <div class="ne-dot"></div>
+      <div class="ne-top-label">SENTINEL IDENTITY REGISTRATION</div>
+    </div>
+    <div class="ne-body">
+      <div class="ne-icon">🔐</div>
+      <div class="ne-title">IDENTIFY YOURSELF</div>
+      <div class="ne-sub">The vault requires a registered Sentinel identity. Enter your name to log your mission scores to the city's secure network.</div>
+      <div class="ne-input-wrap">
+        <input class="ne-input" id="ne-input" type="text" maxlength="20" placeholder="ENTER YOUR NAME" autocomplete="off" spellcheck="false" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')App.confirmName()"/>
+      </div>
+      <div class="ne-error" id="ne-error"></div>
+      <button class="btn-ne-confirm" onclick="App.confirmName()">⚡ &nbsp;CONFIRM IDENTITY &nbsp;→</button>
+    </div>
+    <div class="ne-class-hint">Your name will appear on the mission leaderboard — visible to your teacher and classmates.</div>
+  </div>
+</div>
+
+<!-- STORY -->
+<div class="screen" id="screen-story">
+  <div class="story-wrap">
+    <div class="story-card" id="story-card">
+      <div class="story-scanlines"></div>
+      <div class="scene-illus" id="story-scene-illus">
+        
+        <div class="beat-img-wrap">
+          <img class="beat-img-blur visible" id="beat-blur-a" alt="" referrerpolicy="no-referrer" aria-hidden="true"/>
+          <img class="beat-img-blur" id="beat-blur-b" alt="" referrerpolicy="no-referrer" aria-hidden="true"/>
+          <img class="beat-img visible" id="beat-img-a" alt="Scene" referrerpolicy="no-referrer" fetchpriority="high"/>
+          <img class="beat-img" id="beat-img-b" alt="Scene" referrerpolicy="no-referrer"/>
+        </div>
+        <div class="scene-scanlines"></div>
+        <div class="scene-vignette"></div>
+        <div class="scene-bottom-fade"></div>
+      </div>
+      <div class="story-bottom">
+        <div class="narrator-bar">
+          <div class="narrator-name">COMMANDER LYRA</div>
+          <div class="narrator-role">SENTINEL DIVISION — SECURE CHANNEL</div>
+        </div>
+        <div class="beat-counter" id="beat-counter"></div>
+        <div class="dialogue-box" id="dialogue-box">
+          <div class="dialogue-text" id="dialogue-text"></div>
+        </div>
+        <div class="story-footer">
+          <div class="story-footer-meta">
+            <div class="scene-counter" id="scene-counter">SCENE 01 / 05</div>
+            <div class="scene-dots" id="scene-dots"></div>
+          </div>
+          <div class="auto-advance-bar-wrap"><div class="auto-advance-bar" id="auto-advance-bar"></div></div>
+          <div class="story-footer-actions">
+            <button class="btn-skip-story" id="btn-skip-story" onclick="App.skipStory()">▶▶ SKIP</button>
+            <button class="btn-story-next" id="btn-story-next" onclick="App.storyNext()">CONTINUE ▶</button>
+            <button class="btn-skip-typing" id="btn-skip-typing" onclick="App.skipCurrentTyping()">SKIP ▶</button>
+          </div>
+        </div>
+        <button class="btn-accept-mission" id="btn-accept-mission" onclick="App.acceptMission()">
+          ⚡ &nbsp;ACCEPT MISSION — ENTER BIO-VAULT 38&nbsp;<span class="accept-arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VAULT SCENE -->
+<div class="screen" id="screen-vault-scene">
+  <div class="vault-scene-wrap">
+    <div class="vault-scene-card">
+      <div class="vault-scene-scanlines"></div>
+      <div class="scene-illus" id="vs-illus">
+        <div class="scene-tag" id="vs-scene-tag">VAULT 1 — CELL CYCLE</div>
+        <div class="beat-img-wrap">
+  <img class="beat-img-blur visible" id="vs-beat-blur-a" alt="" referrerpolicy="no-referrer" aria-hidden="true"/>
+  <img class="beat-img-blur" id="vs-beat-blur-b" alt="" referrerpolicy="no-referrer" aria-hidden="true"/>
+  <img class="beat-img visible" id="vs-beat-img-a" alt="Vault scene" referrerpolicy="no-referrer"/>
+  <img class="beat-img" id="vs-beat-img-b" alt="Vault scene" referrerpolicy="no-referrer"/>
+</div>
+        <div class="scene-scanlines"></div><div class="scene-vignette"></div><div class="scene-bottom-fade"></div>
+      </div>
+      <div class="vs-bottom">
+        <div class="vs-character-bar">
+          <div class="vs-char lyra-side" id="vs-lyra-char">
+            <div class="vs-char-pulse" id="vs-lyra-pulse"></div>
+            <div class="vs-char-name">LYRA</div>
+            <span class="vs-speaking-badge">● SPEAKING</span>
+            <span class="vs-lyra-mood-tag" id="vs-lyra-mood-tag"></span>
+            <div class="vs-char-role">COMMANDER ♀</div>
+          </div>
+          <div class="vs-char sentinel-side" id="vs-sentinel-char">
+            <div class="vs-char-pulse" id="vs-sentinel-pulse"></div>
+            <div class="vs-char-name">SENTINEL</div>
+            <span class="vs-speaking-badge">● SPEAKING</span>
+            <div class="vs-char-role">YOU ♂</div>
+          </div>
+        </div>
+        <div class="vs-beat-counter" id="vs-beat-counter"></div>
+        <div class="vs-dialogue-box">
+          <span class="vs-speaker-label" id="vs-speaker-label">LYRA</span>
+          <div class="vs-dialogue-text" id="vs-dialogue-text"></div>
+        </div>
+        <div class="vs-footer">
+          <div class="vs-footer-meta">
+            <div class="vs-vault-label" id="vs-vault-label">VAULT 1 OF 3</div>
+            <div class="vs-beat-dots" id="vs-beat-dots"></div>
+          </div>
+          <div class="vs-auto-advance-bar-wrap"><div class="vs-auto-advance-bar" id="vs-auto-advance-bar"></div></div>
+          <div class="vs-footer-actions">
+            <button class="btn-vs-skip" onclick="App.skipVaultScene()">▶▶ SKIP</button>
+            <button class="btn-vs-next" id="btn-vs-next" onclick="App.vaultSceneNext()">CONTINUE ▶</button>
+            <button class="btn-vs-skip-typing" id="btn-vs-skip-typing" onclick="App.skipVaultSceneTyping()">SKIP ▶</button>
+          </div>
+        </div>
+        <button class="btn-proceed-briefing" id="btn-proceed-briefing" onclick="App.proceedToBriefing()">
+          📋 &nbsp;VIEW MISSION BRIEFING&nbsp;<span class="proceed-arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONCEPT BRIDGE -->
+<div class="screen" id="screen-bridge">
+  <div class="bridge-wrap">
+    <div class="bridge-card">
+      <div class="bridge-top-bar">
+        <div class="bridge-badge">⚡ INTEL CHECK</div>
+        <button class="topbar-btn" onclick="App.skipBridge()">SKIP →</button>
+      </div>
+      <div class="bridge-content">
+        <span class="bridge-icon" id="bridge-icon">🔗</span>
+        <div class="bridge-question-label">CROSS-VAULT CONCEPT CHECK</div>
+        <div class="bridge-question" id="bridge-question">Loading question…</div>
+        <div class="bridge-options" id="bridge-options"></div>
+        <div class="bridge-explanation" id="bridge-explanation"></div>
+      </div>
+      <div class="bridge-footer">
+        <button class="btn-bridge-continue" id="btn-bridge-continue" onclick="App.bridgeContinue()">
+          PROCEED TO MISSION BRIEFING <span style="animation:accept-arrow-bounce 1.2s ease-in-out infinite;display:inline-block">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="screen" id="screen-leaderboard">
+  <div class="lb-topbar">
+    <button class="topbar-btn" onclick="App.closeLeaderboard()">← BACK</button>
+    <div class="lb-title">🏆 CITY SENTINEL RANKINGS</div>
+    <button class="topbar-btn" onclick="App.refreshLeaderboard()" style="font-size:14px">↺</button>
+  </div>
+  <div class="lb-wrap">
+    <div class="lb-header-card">
+      <div class="lb-trophy">🏆</div>
+      <div class="lb-header-text">
+        <div class="lb-header-title">MISSION LEADERBOARD</div>
+        <div class="lb-header-sub">All registered Sentinels ranked by consistency.<br>100% means every vault was solved perfectly on the first try.<br>Crack all 3 vaults to appear on this board.</div>
+        <div class="lb-score-formula">CONSISTENCY % = (SUM OF 1ST-ATTEMPT SCORES ÷ SUM OF BEST SCORES) × 100</div>
+      </div>
+    </div>
+    <div class="lb-cols">
+      <div class="lb-col-head">#</div>
+      <div class="lb-col-head">SENTINEL</div>
+      <div class="lb-col-head" style="text-align:right">CONSISTENCY</div>
+      <div class="lb-col-head" style="text-align:right">BEST TOTAL</div>
+      <div class="lb-col-head" style="text-align:right">1ST TOTAL</div>
+      <div class="lb-col-head" style="text-align:right">TIME</div>
+    </div>
+    <div class="lb-entries" id="lb-entries">
+      <div class="lb-empty">Loading scores…</div>
+    </div>
+    <div class="lb-footer-btns">
+      <button class="btn-lb-export" onclick="App.exportCSV()">📥 &nbsp;EXPORT FOR TEACHER (CSV)</button>
+      <button class="btn-lb-clear" onclick="App.clearLeaderboard()" title="Clear all scores">🗑</button>
+    </div>
+  </div>
+</div>
+
+<!-- MENU -->
+<div class="screen" id="screen-menu">
+  <div class="menu-header">
+    <div class="mh-eyebrow">BIO-VAULT SYSTEM — SENTINEL ACCESS</div>
+    <div class="logo">BIO-VAULT 38</div>
+    <div class="logo-sub">DECODE THE CELL REPRODUCTION SEQUENCES — SAVE THE CITY</div>
+  </div>
+  <div class="player-banner" id="player-banner">
+    <span class="player-banner-icon">👤</span>
+    <span class="player-banner-name" id="player-banner-name">SENTINEL</span>
+    <span class="player-banner-badge" id="player-banner-badge">REGISTERED</span>
+    <button class="btn-lb-open" onclick="App.openLeaderboard()">🏆 RANKINGS</button>
+  </div>
+  <div class="hud-bar">
+    <div class="hud-item"><span class="hud-icon">⚡</span><div><div class="hud-val" id="hud-score">0</div><div class="hud-label">SCORE</div></div></div>
+    <div class="hud-divider"></div>
+    <div class="hud-item"><span class="hud-icon">🔥</span><div><div class="hud-val" id="hud-streak">0</div><div class="hud-label">STREAK</div></div></div>
+    <div class="hud-divider"></div>
+    <div class="hud-item"><span class="hud-icon">🔓</span><div><div class="hud-val" id="hud-cracked">0</div><div class="hud-label">UNLOCKED</div></div></div>
+  </div>
+  <div class="city-map-wrap">
+    <div class="city-map-label">▶ CITY BIOLOGICAL STATUS — SECTOR MAP</div>
+    <svg class="city-map-svg" viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg">
+      <rect class="city-sector" id="map-sector-0" x="10" y="10" width="118" height="56" rx="4"/>
+      <text class="sector-label" id="map-label-0" x="69" y="32" font-family="'Orbitron',sans-serif" font-size="7">SECTOR-A</text>
+      <text class="sector-label" id="map-sub-0" x="69" y="44" font-family="'Share Tech Mono',monospace" font-size="6">CELL CYCLE</text>
+      <text class="sector-label" id="map-icon-0" x="69" y="57" font-size="10">🔬</text>
+      <rect class="city-sector" id="map-sector-1" x="138" y="10" width="118" height="56" rx="4"/>
+      <text class="sector-label" id="map-label-1" x="197" y="32" font-family="'Orbitron',sans-serif" font-size="7">SECTOR-B</text>
+      <text class="sector-label" id="map-sub-1" x="197" y="44" font-family="'Share Tech Mono',monospace" font-size="6">MITOSIS</text>
+      <text class="sector-label" id="map-icon-1" x="197" y="57" font-size="10">🧬</text>
+      <rect class="city-sector" id="map-sector-2" x="266" y="10" width="124" height="56" rx="4"/>
+      <text class="sector-label" id="map-label-2" x="328" y="32" font-family="'Orbitron',sans-serif" font-size="7">SECTOR-C</text>
+      <text class="sector-label" id="map-sub-2" x="328" y="44" font-family="'Share Tech Mono',monospace" font-size="6">MEIOSIS</text>
+      <text class="sector-label" id="map-icon-2" x="328" y="57" font-size="10">🔄</text>
+      <rect class="city-sector" x="10" y="76" width="380" height="50" rx="4"/>
+      <text class="city-health-pct" id="city-health-pct-svg" x="200" y="99" font-family="'Orbitron',sans-serif" dominant-baseline="central">23%</text>
+      <text class="city-health-sub" x="200" y="116" font-family="'Share Tech Mono',monospace" font-size="7" fill="var(--text-mute)">CITY BIOLOGICAL HEALTH</text>
+      <rect x="12" y="76" width="0" height="50" rx="4" id="city-health-fill" fill="rgba(0,255,136,0.08)" style="transition:width 1.2s ease"/>
+    </svg>
+  </div>
+  <div class="emergency-banner" id="emergency-banner" onclick="App.launchEmergencyVault()">
+    <span class="eb-icon">🚨</span>
+    <div class="eb-text">
+      <div class="eb-title">EMERGENCY TRANSMISSION — MISSED STEPS DETECTED</div>
+      <div class="eb-sub" id="eb-sub">You have steps flagged for review. Tap to run 60-second emergency drill.</div>
+    </div>
+    <span class="eb-arrow">→</span>
+  </div>
+  <div class="mission-section-label">— SELECT YOUR NEXT MISSION —</div>
+  <div class="vault-grid" id="vault-grid"></div>
+</div>
+
+<!-- RECAP -->
+<div class="screen" id="screen-recap">
+  <div class="discussion-wrap">
+    <div class="discussion-card">
+      <div class="disc-top-bar">
+        <div class="disc-badge" id="recap-badge">VAULT 1 CRACKED</div>
+      </div>
+      <div class="disc-header-row">
+        <div class="disc-vault-icon" id="recap-vault-icon">🔬</div>
+        <div class="disc-header-text">
+          <div class="disc-label">📖 MISSION RECAP — REVIEW WHAT YOU LEARNED</div>
+          <div class="disc-title" id="recap-title">Loading...</div>
+        </div>
+      </div>
+      <div class="disc-body" id="recap-body"></div>
+      <div class="disc-footer">
+        <button class="btn-start-vault" id="btn-recap-continue" onclick="App.recapContinue()">
+          <span>✓</span><span>CONTINUE</span><span class="bsv-arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DISCUSSION -->
+<div class="screen" id="screen-discussion">
+  <div class="discussion-wrap">
+    <div class="discussion-card">
+      <div class="disc-top-bar">
+        <button class="topbar-btn" onclick="App.goBack()">← ABORT</button>
+        <div class="disc-badge" id="disc-badge">VAULT 1 OF 3</div>
+      </div>
+      <div class="disc-header-row">
+        <div class="disc-vault-icon" id="disc-vault-icon">🔬</div>
+        <div class="disc-header-text">
+          <div class="disc-label">▶ MISSION BRIEFING — SENTINEL EYES ONLY</div>
+          <div class="disc-title" id="disc-title">Loading...</div>
+        </div>
+      </div>
+      <div class="disc-body" id="disc-body"></div>
+      <div class="disc-footer">
+        <button class="btn-start-vault" onclick="App.startVaultFromDisc()">
+          <span>🔐</span><span>INITIATE VAULT CRACK</span><span class="bsv-arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="screen-vault">
+  <div class="game-topbar">
+    <button class="topbar-btn" onclick="App.goBack()">← ABORT</button>
+    <div class="topbar-title" id="vault-subject-label">BIO-VAULT</div>
+    <div class="topbar-score" id="vault-score-live">0 pts</div>
+  </div>
+  <div class="emergency-topbar-strip" id="emergency-topbar-strip">
+    <div class="ets-pulse"></div>
+    <div class="ets-label">EMERGENCY DRILL — REVIEW MODE</div>
+    <div class="ets-sub" id="ets-sub">FLAGGED STEPS ONLY</div>
+  </div>
+  <div class="game-layout">
+    <div class="game-left">
+      <div class="howto-banner">
+        <span class="howto-icon">🔐</span>
+        <div>
+          <div class="howto-title">MISSION PROTOCOL</div>
+          <div class="howto-text">Each description carries a <strong>random code number</strong>. Spin the dial to each code in biological order — each snap fills a slot. Once <strong>all slots are filled</strong>, hit LOCK IN to submit the full combination.</div>
+        </div>
+      </div>
+      <div class="topic-card">
+        <div class="topic-card-top">
+          <div class="topic-progress" id="q-number">VAULT 1 / 3</div>
+          <div class="topic-tag" id="q-badge">3 CODES</div>
+        </div>
+        <div class="topic-title-row">
+          <span class="topic-lock-icon" id="topic-lock-icon">🔒</span>
+          <h2 class="topic-title" id="q-topic">Loading...</h2>
+        </div>
+        <div class="topic-subtitle">Dial the <span class="hl">code numbers</span> in the correct biological step order.</div>
+      </div>
+      <div class="clue-table-wrap">
+        <table class="clue-table">
+          <thead><tr><th class="ct-head-step">CODE</th><th class="ct-head-desc">DESCRIPTION — determine the correct biological order</th></tr></thead>
+          <tbody id="clue-tbody"></tbody>
+        </table>
+      </div>
+      <div class="answer-key-row" id="answer-key-row" style="display:none">
+        <span class="ak-label">CORRECT ORDER:</span>
+        <span class="ak-codes" id="ak-codes"></span>
+      </div>
+      <div class="slot-feedback-row" id="slot-feedback-row" style="display:none"></div>
+      <div class="micro-lesson" id="micro-lesson">
+        <div class="ml-title" id="ml-title">📡 INTEL — SEQUENCE ERROR</div>
+        <div class="ml-body" id="ml-body"></div>
+      </div>
+      <div class="hint-panel" id="hint-panel" style="display:none">
+        <div class="hint-panel-title">💡 INTEL — NEXT CODE</div>
+        <div class="hint-panel-body" id="hint-body"></div>
+      </div>
+    </div>
+    <div class="game-right">
+      <div class="vault-door" id="vault-door">
+        <div class="door-rivet tl"></div><div class="door-rivet tr"></div><div class="door-rivet bl"></div><div class="door-rivet br"></div>
+        <div class="vault-door-title"><span id="dial-emblem">🔬</span> &nbsp;VAULT LOCK</div>
+        <div class="combo-label-top">COMBINATION</div>
+        <div class="combo-row" id="answer-display"></div>
+        <div class="dial-assembly">
+          <div class="notch-arrow-wrap"><div class="notch-triangle"></div><div class="notch-line"></div></div>
+          <div class="dial-outer-ring">
+            <div class="dial-body" id="dial-body">
+              <canvas id="dial-canvas"></canvas>
+              <div class="dial-hub"><div class="dial-hub-ring"></div><span class="dial-hub-icon" id="dial-hub-icon">⚙</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="snap-readout">
+          <div class="snap-label" id="snap-label">SPIN TO FILL SLOT</div>
+          <div class="snap-val" id="snap-val">—</div>
+        </div>
+        <div class="attempts-wrap">
+          <div class="attempts-label">ATTEMPTS REMAINING</div>
+          <div class="attempts-row" id="attempts-row"></div>
+        </div>
+      </div>
+      <div class="action-row">
+        <button class="btn-lockin" id="btn-confirm" onclick="App.confirmDigit()" disabled>⚡ LOCK IN</button>
+       <button class="btn-hint" id="btn-hint" onclick="App.toggleHint()">💡 INTEL</button>
+<button class="btn-undo" id="btn-undo" onclick="App.undoLastSlot()" disabled>↩</button>
+<button class="btn-clear" onclick="App.clearAnswer()">✕</button>
+      </div>
+      <div class="result-msg" id="result-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="overlay-card">
+    <div class="overlay-icon" id="ov-icon">🔓</div>
+    <div class="overlay-title" id="ov-title">VAULT CRACKED</div>
+    <div class="overlay-pts" id="ov-pts">+160 pts</div>
+    <div class="overlay-time" id="ov-time"></div>
+    <div class="overlay-story-beat" id="ov-story-beat"></div>
+    <div class="overlay-sub" id="ov-sub"></div>
+    <div class="overlay-correct" id="ov-correct"></div>
+    <div class="overlay-btns">
+      <button class="btn-ov-next" id="ov-next-btn" onclick="App.nextVault()">NEXT VAULT →</button>
+      <button class="btn-ov-menu" onclick="App.goBack()">MAP</button>
+    </div>
+  </div>
+</div>
+
+<!-- VICTORY -->
+<div id="screen-victory">
+  <div class="victory-bg-rings"><div class="vring"></div><div class="vring"></div><div class="vring"></div><div class="vring"></div></div>
+  <div class="victory-card">
+    <div class="victory-scene-bar"><div class="victory-scene-dot"></div>FINAL TRANSMISSION — BIO-VAULT 38</div>
+    <div class="victory-hero">
+      <div class="victory-trophy">🏆</div>
+      <div class="victory-headline">CITY SAVED</div>
+      <div class="victory-sub-headline">ALL VAULTS CRACKED — CELL RENEWAL FORMULA SYNTHESIZED</div>
+    </div>
+    <div class="victory-stats">
+      <div class="vstat"><span class="vstat-val" id="v-final-score">0</span><span class="vstat-label">FINAL SCORE</span></div>
+      <div class="vstat"><span class="vstat-val" id="v-final-time">00:00</span><span class="vstat-label">MISSION TIME</span></div>
+      <div class="vstat"><span class="vstat-val" id="v-final-streak">0</span><span class="vstat-label">PEAK STREAK</span></div>
+    </div>
+    <div class="victory-narrative" id="victory-narrative"></div>
+    <div class="victory-footer">
+      <div class="victory-formula-bar">
+        <span class="vfb-label">FORMULA COMPONENTS</span>
+        <div class="vfb-icons">🔬 🧬 🔄</div>
+        <span class="vfb-check">✓ ALL SYNTHESIZED</span>
+      </div>
+      <button class="btn-victory-restart" onclick="App.restartFromVictory()">↺ &nbsp;NEW MISSION — PLAY AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAIL -->
+<div id="screen-fail">
+  <div class="fail-bg"></div><div class="fail-static"></div>
+  <div class="fail-card">
+    <div class="fail-top-bar"><div class="fail-top-dot"></div>EMERGENCY BROADCAST — MISSION FAILURE</div>
+    <div class="fail-hero">
+      <div class="fail-icon">💀</div>
+      <div class="fail-headline">MISSION FAILED</div>
+      <div class="fail-sub-headline">TIME LIMIT EXCEEDED — CITY LOST</div>
+      <div class="fail-timer-readout">30:00</div>
+      <div class="fail-timer-label">TIME EXPIRED</div>
+    </div>
+    <div class="fail-narrative">"The cell renewal cycle has lapsed. Synthesis teams have stood down. We are out of time, Sentinel. The city… the city is gone dark. I'm sorry."<br><br>— Commander Lyra, final transmission</div>
+    <div class="fail-progress" id="fail-progress"><div class="fail-progress-label">VAULTS STATUS AT TIME OF FAILURE</div></div>
+    <div class="fail-footer">
+      <button class="btn-fail-retry" onclick="App.retryFromFail()">↺ &nbsp;RETRY MISSION</button>
+      <button class="btn-fail-menu" onclick="App.menuFromFail()">← RETURN TO VAULT MAP</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LB = (() => {
+  const API = '/api/leaderboard';
+  async function fetchAll(){
+    try{
+      const res=await fetch(API);
+      if(!res.ok)throw new Error('bad response');
+      return await res.json();
+    }catch(e){
+      console.error('Leaderboard fetch failed:',e);
+      return [];
+    }
+  }
+  async function recordRun(name,vaultPts,timeSecs){
+    if(!name||!name.trim())return;
+    try{
+      const res=await fetch(API,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name:name.trim(),vaultPts:vaultPts||{},timeSecs})
+      });
+      if(!res.ok)throw new Error('bad response');
+    }catch(e){
+      console.error('Failed to save run to leaderboard:',e);
+    }
+  }
+  async function getRanked(vaultIds){
+    const entries=(await fetchAll()).filter(e=>vaultIds.every(vid=>e.vaults && e.vaults[vid]));
+    const out=entries.map(e=>{
+      const have=vaultIds.filter(vid=>e.vaults[vid]);
+      let result1=0,result2=0;
+      have.forEach(vid=>{result1+=e.vaults[vid].first;result2+=e.vaults[vid].best;});
+      const complete=have.length===vaultIds.length;
+      const finalScore=(result2>0)?Math.round((result1/result2)*1000)/10:0;
+      return {name:e.name,finalScore,result1,result2,vaultsDone:have.length,vaultsTotal:vaultIds.length,complete,bestTime:e.bestTime,runs:e.runs};
+    });
+    out.sort((a,b)=>{
+      if(a.complete!==b.complete)return a.complete?-1:1;
+      if(b.finalScore!==a.finalScore)return b.finalScore-a.finalScore;
+      if(b.result2!==a.result2)return b.result2-a.result2;
+      return (a.bestTime||9e9)-(b.bestTime||9e9);
+    });
+    return out;
+  }
+  async function clear(adminKey){
+    const res=await fetch(API,{method:'DELETE',headers:{'x-admin-key':adminKey||''}});
+    if(!res.ok){
+      const body=await res.json().catch(()=>({}));
+      throw new Error(body.error||'Failed to clear leaderboard');
+    }
+  }
+  async function exportCSV(vaultIds){
+    const ranked=await getRanked(vaultIds);
+    const now=new Date().toLocaleString();
+    let csv=`BIO-VAULT 38 — Mission Leaderboard Export\nGenerated: ${now}\nScoring: Consistency Score = (Sum of First-Attempt Scores / Sum of Best Scores) x 100, across all ${vaultIds.length} vaults\n\n`;
+    csv+=`Rank,Sentinel Name,Consistency %,First-Attempt Total,Best Total,Vaults Completed,Best Time (mm:ss),Total Runs\n`;
+    ranked.forEach((e,i)=>{
+      const t=e.bestTime||0;
+      const timeStr=`${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+      const pct=e.complete?e.finalScore.toFixed(1):'INCOMPLETE';
+      csv+=`${i+1},"${e.name}",${pct},${e.result1},${e.result2},${e.vaultsDone}/${e.vaultsTotal},${timeStr},${e.runs||1}\n`;
+    });
+    return csv;
+  }
+  return{recordRun,getRanked,clear,exportCSV};
+})();
+
+const SceneImages = (() => {
+  const BEAT_IMAGES = [
+  'https://lh3.googleusercontent.com/d/1n1iks-FKVcslenEube2thpi5-36AgqCj',
+  'https://lh3.googleusercontent.com/d/1W97ZdPuT6qsr9AZpisA5lIBWRrKVjLp8',
+  'https://lh3.googleusercontent.com/d/1q4N2oLOdYZP8v3EDIoPGEwy8ZM4cpcF8',
+  'https://lh3.googleusercontent.com/d/1u-8EsFlzmGsydcvK9vrVKzVEk7WQvgOT',
+  'https://lh3.googleusercontent.com/d/1rlc4UalUsowjMvbHTYFwulo9sWmRyABu',
+  'https://lh3.googleusercontent.com/d/1MV9nutGXpIc4g5o7uBu-WDT9L6l315dX',
+  'https://lh3.googleusercontent.com/d/1VtA0omyCVERZ-Ce3tYOGC9o_DmcqO2Up',
+  'https://lh3.googleusercontent.com/d/1IOSaevUxPfqyXAOs3bAXARDcYYbGaWB9',
+  'https://lh3.googleusercontent.com/d/1909XwcIxbX0dZLExJxCYxt5l17v5q65Q',
+  'https://lh3.googleusercontent.com/d/1vtAmLLgu34ge6EfKOxAWZ2R0STDvU04f',
+  'https://lh3.googleusercontent.com/d/1M9hL8G-JVZKa9soCwebtEhth33VKcqdA',
+  'https://lh3.googleusercontent.com/d/1BPr_jX2IpDM0O5SXWO9ATsUhZ7Lr4IH_',
+  'https://lh3.googleusercontent.com/d/1YmjM3L6nb8zpt6X4Jrr-OpZHQp4tJo_2',
+  'https://lh3.googleusercontent.com/d/1tSTtUuSk8YDtSwUEFTNbOlNcnpONZUpJ',
+  'https://lh3.googleusercontent.com/d/1w_O1hCRXgjW_kdyvVon9NoGqrk07-MN-',
+  'https://lh3.googleusercontent.com/d/1Wq73tMkFNXDtc5IXNtGCj1OtaFHTMinL',
+  'https://lh3.googleusercontent.com/d/1fRmE6P-56XRPW8ZL-O-w1rodV2oL948y',
+  'https://lh3.googleusercontent.com/d/1TlgL7zfzEmcmY8h3Q_tZxIYtKSRjAnCd',
+  'https://lh3.googleusercontent.com/d/1W41ytVWznq_u-e5zOoTvhGRIa5fa4JqP',
+  'https://lh3.googleusercontent.com/d/1sB-JsuSn9Amf9WJ0a4Mofqr31d7FaBZW',
+  'https://lh3.googleusercontent.com/d/1BuZd_-xa3qUUheCxdQQ63WYcFoHiEozp',
+  'https://lh3.googleusercontent.com/d/1TWEo9WLwBCNERFWXPgCSepJZ1O4ejSxD',
+  'https://lh3.googleusercontent.com/d/1RJLAMqap6tipxHynOxcfFeedhOJTs_ar',
+  'https://lh3.googleusercontent.com/d/1DL0_X470ZDEwlbteyqqdr_KvI2uI8enC',
+  'https://lh3.googleusercontent.com/d/184f4k4-1pmKDrlJx0CjxcPcTKLREwWid',
+];
+  const SCENE_TAGS = [
+    'SCENE 01 — YEAR 2085','SCENE 02 — THE VITA-FORMULA','SCENE 03 — THE ANALOG VAULT',
+    'SCENE 04 — YOU ARE THE SENTINEL','SCENE 05 — MISSION BEGINS',
+  ];
+  let _slotA = true;
+  function getUrl(sceneIdx, beatIdx){ return BEAT_IMAGES[sceneIdx * 5 + beatIdx] || ''; }
+  function reset(){
+    _slotA = true;
+    const imgA=document.getElementById('beat-img-a'),imgB=document.getElementById('beat-img-b');
+    const blurA=document.getElementById('beat-blur-a'),blurB=document.getElementById('beat-blur-b');
+    if(imgA){imgA.classList.add('visible');imgA.src='';}
+    if(imgB){imgB.classList.remove('visible');imgB.src='';}
+    if(blurA){blurA.classList.add('visible');blurA.src='';}
+    if(blurB){blurB.classList.remove('visible');blurB.src='';}
+  }
+  function loadBeatImage(sceneIdx, beatIdx){
+    const url=getUrl(sceneIdx,beatIdx); if(!url)return;
+    const imgA=document.getElementById('beat-img-a'),imgB=document.getElementById('beat-img-b');
+    const blurA=document.getElementById('beat-blur-a'),blurB=document.getElementById('beat-blur-b');
+    imgA.removeAttribute('crossorigin');imgB.removeAttribute('crossorigin');
+    imgA.referrerPolicy='no-referrer';imgB.referrerPolicy='no-referrer';
+    const tag=document.getElementById('story-scene-tag');
+    if(tag)tag.textContent=SCENE_TAGS[sceneIdx]||'';
+    const sentinelOverlay=document.getElementById('sentinel-overlay');
+    if(sentinelOverlay)sentinelOverlay.style.display=sceneIdx===3?'flex':'none';
+    if(beatIdx===0){imgA.classList.add('visible');imgB.classList.remove('visible');imgB.src='';_slotA=true;}
+    if(_slotA){imgB.src=url;blurB.src=url;imgB.onload=()=>{imgB.classList.add('visible');imgA.classList.remove('visible');blurB.classList.add('visible');blurA.classList.remove('visible');_slotA=false;};imgB.onerror=()=>{};}
+    else{imgA.src=url;blurA.src=url;imgA.onload=()=>{imgA.classList.add('visible');imgB.classList.remove('visible');blurA.classList.add('visible');blurB.classList.remove('visible');_slotA=true;};imgA.onerror=()=>{};}
+  }
+  function preloadAll(){for(let s=0;s<5;s++){for(let b=0;b<5;b++){const img=new Image();img.src=getUrl(s,b);}}}
+  return{loadBeatImage,preloadAll,reset};
+})();
+
+const VaultSceneImages = (() => {
+  const VAULT_BEAT_IMAGES = [
+  // Vault 0 — Cell Cycle (beats 0-4)
+  'https://lh3.googleusercontent.com/d/1OYo9lDTTqT7AHa2nFNt9uLx-eV8ODyYP',
+  'https://lh3.googleusercontent.com/d/1HpP72VCaFsAYby8Y10zPVjuD0hUCMNp3',
+  'https://lh3.googleusercontent.com/d/1rYQBSls8rtxH6JjZd4-JHX2er_8MyswE',
+  'https://lh3.googleusercontent.com/d/1wETZ8R-mZ5D5AOhSvSAY82itdS0xcCb3',
+  'https://lh3.googleusercontent.com/d/1fpaFK2IqMATZIYdFb4PdlcoA_iy7ub_T',
+  'https://lh3.googleusercontent.com/d/1NZCiybhnjuCVhpyQQ5GFabFbq9QCefK9',
+  // Vault 1 — Mitosis (beats 0-4)
+  'https://lh3.googleusercontent.com/d/1ESOXJ5VBjVNJmHTTVxUvUUdCZDnbS3p2',
+  'https://lh3.googleusercontent.com/d/1lmXvdk0VEg5YxLawFY4yTafqxjPr6ewH',
+  'https://lh3.googleusercontent.com/d/19bscjgEu95f0nWVOMdCTxW0XRwldzU02',
+  'https://lh3.googleusercontent.com/d/1nPTZrzSaxEdyCOCiHwup9GrWGa2-7UKt',
+  'https://lh3.googleusercontent.com/d/1B96b9yOAketTOe-5k5ACL7zjF2QIjf_A',
+  'https://lh3.googleusercontent.com/d/13zE-VxAYuTth187jTlxeQpUx6e69TvG8',
+  'https://lh3.googleusercontent.com/d/1rGFtqT7p_j6IsgywIXWWGh2fO4ntZUvI',
+  // Vault 2 — Meiosis (beats 0-4)
+  'https://lh3.googleusercontent.com/d/1aybPsWg9UTJuLerlv-prd5UW-bz0uDjt',
+  'https://lh3.googleusercontent.com/d/1bjqHip1cE521v420_P1SBgqkikY4zV3l',
+  'https://lh3.googleusercontent.com/d/1eZmf016e53M5ay5OplZRR5anGlT-xw8f',
+  'https://lh3.googleusercontent.com/d/1fKk5Rcg9iaVxinB4tiQFiatbwur3VGvm',
+  'https://lh3.googleusercontent.com/d/1qrGcPoKuesdKkUXdYqHzNP3ptthK0dlb',
+  'https://lh3.googleusercontent.com/d/1XOE1Sd_4RFiZztU5gvNZGWnALMXU2Jv5',
+  'https://lh3.googleusercontent.com/d/1NaFFtTl1guuTBbjj6G8VrOboPGDExLwX'
+];
+  let _slotA = true;
+  function getUrl(vaultIdx, beatIdx) { return VAULT_BEAT_IMAGES[vaultIdx * 7 + beatIdx] || ''; }
+  function reset() {
+    _slotA = true;
+    const a=document.getElementById('vs-beat-img-a'),b=document.getElementById('vs-beat-img-b');
+    const ba=document.getElementById('vs-beat-blur-a'),bb=document.getElementById('vs-beat-blur-b');
+    if(a){a.classList.add('visible');a.src='';}if(b){b.classList.remove('visible');b.src='';}
+    if(ba){ba.classList.add('visible');ba.src='';}if(bb){bb.classList.remove('visible');bb.src='';}
+  }
+  function load(vaultIdx, beatIdx) {
+    const url=getUrl(vaultIdx,beatIdx); if(!url)return;
+    const a=document.getElementById('vs-beat-img-a'),b=document.getElementById('vs-beat-img-b');
+    const ba=document.getElementById('vs-beat-blur-a'),bb=document.getElementById('vs-beat-blur-b');
+    if(!a||!b)return;
+    if(beatIdx===0){a.src=url;ba.src=url;a.classList.add('visible');b.classList.remove('visible');ba.classList.add('visible');bb.classList.remove('visible');_slotA=false;return;}
+    if(_slotA){a.src=url;ba.src=url;a.onload=()=>{a.classList.add('visible');b.classList.remove('visible');ba.classList.add('visible');bb.classList.remove('visible');_slotA=false;};}
+    else{b.src=url;bb.src=url;b.onload=()=>{b.classList.add('visible');a.classList.remove('visible');bb.classList.add('visible');ba.classList.remove('visible');_slotA=true;};}
+  }
+  function preload(vaultIdx){for(let i=0;i<7;i++){const img=new Image();img.src=getUrl(vaultIdx,i);}}
+  return{load,reset,preload};
+})();
+
+const App = (() => {
+
+const Drone = (() => {
+    let audioCtx=null,nodes=null,playing=false;
+    function ensureCtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+    function start(){if(playing)return;try{ensureCtx();audioCtx.resume().then(()=>{const master=audioCtx.createGain();master.gain.setValueAtTime(0,audioCtx.currentTime);master.gain.linearRampToValueAtTime(0.06,audioCtx.currentTime+3);master.connect(audioCtx.destination);const sub=audioCtx.createOscillator();sub.type='sine';sub.frequency.value=110;const subG=audioCtx.createGain();subG.gain.value=0.3;sub.connect(subG);subG.connect(master);sub.start();const mid=audioCtx.createOscillator();mid.type='sine';mid.frequency.value=110;const midG=audioCtx.createGain();midG.gain.value=0.12;mid.connect(midG);midG.connect(master);mid.start();const lfo=audioCtx.createOscillator();lfo.type='sine';lfo.frequency.value=0.09;const lfoG=audioCtx.createGain();lfoG.gain.value=0.05;lfo.connect(lfoG);lfoG.connect(master.gain);lfo.start();const shimmer=audioCtx.createOscillator();shimmer.type='sine';shimmer.frequency.value=440;const shimG=audioCtx.createGain();shimG.gain.value=0.03;shimmer.connect(shimG);shimG.connect(master);shimmer.start();nodes={master,sub,mid,lfo,shimmer};playing=true;}).catch(()=>{});}catch(e){console.error('[Drone] error',e);}}
+    function stop(){if(!playing||!nodes)return;try{nodes.master.gain.linearRampToValueAtTime(0,audioCtx.currentTime+1.8);setTimeout(()=>{try{nodes.sub.stop();nodes.mid.stop();nodes.lfo.stop();nodes.shimmer.stop();}catch(e){}playing=false;nodes=null;},1900);}catch(e){playing=false;}}
+    return{start,stop,ensureCtx};
+  })();
+
+  const Voice = (() => {
+    const synth=window.speechSynthesis||null;
+    let enabled=true,speaking=false,lyraVoice=null,sentinelVoice=null,voicesReady=false,gestureReady=false,pendingQueue=[];
+    let _unlockDone=false;
+    const FEMALE_NAMES=['Google UK English Female','Microsoft Zira','Microsoft Hazel','Samantha','Victoria','Karen','Moira','Fiona','Google US English Female'];
+    const MALE_NAMES=['Google UK English Male','Microsoft David','Microsoft Mark','Daniel','Alex','Google US English Male','David','Mark'];
+    function pickVoice(voices,preferNames,genderRe){for(const n of preferNames){const v=voices.find(v=>v.name===n);if(v)return v;}for(const n of preferNames){const v=voices.find(v=>v.name.includes(n));if(v)return v;}return voices.find(v=>genderRe.test(v.name))||null;}
+    function assignVoices(){if(!synth)return;const all=synth.getVoices();if(!all.length)return;const en=all.filter(v=>v.lang.startsWith('en'));const pool=en.length?en:all;lyraVoice=pickVoice(pool,FEMALE_NAMES,/female/i)||pool[0];const maleHit=pickVoice(pool,MALE_NAMES,/male/i);sentinelVoice=(maleHit&&maleHit!==lyraVoice)?maleHit:pool.find(v=>v!==lyraVoice)||pool[pool.length-1]||pool[0];voicesReady=true;}
+    if(synth){assignVoices();if(!voicesReady)synth.addEventListener('voiceschanged',assignVoices);}
+    function setIndicator(on,speakerName='LYRA'){const ind=document.getElementById('voice-indicator');const badge=document.getElementById('narrator-voice-badge');const pulse=document.getElementById('narrator-pulse');const spk=document.getElementById('vi-speaker-name');if(spk)spk.textContent=speakerName;if(ind)ind.classList.toggle('visible',on);if(badge)badge.className='narrator-voice-badge'+(on?'speaking':(enabled?'on':''));if(pulse)pulse.className='narrator-pulse'+(on?' speaking':'');const vt=document.getElementById('voice-toggle');if(vt)vt.className='ctrl-btn'+(on?' voice-active':'')+(!enabled?' off':'');}
+    function updateBadge(){const badge=document.getElementById('narrator-voice-badge');if(badge)badge.className='narrator-voice-badge'+(enabled?' on':'');const vt=document.getElementById('voice-toggle');if(vt)vt.className='ctrl-btn'+(!enabled?' off':'');}
+    function speakNow(text,speakerName){if(!synth||!enabled||!text)return;const isLyra=(speakerName||'LYRA').toUpperCase()==='LYRA';const utter=new SpeechSynthesisUtterance(text);if(isLyra){utter.voice=lyraVoice;utter.rate=0.82;utter.pitch=1.18;utter.volume=0.95;}else{utter.voice=sentinelVoice;utter.rate=0.76;utter.pitch=0.72;utter.volume=0.95;}speaking=true;setIndicator(true,speakerName);utter.onend=()=>{speaking=false;setIndicator(false);};utter.onerror=()=>{speaking=false;setIndicator(false);};synth.speak(utter);}
+    function flushPending(){if(!pendingQueue.length)return;const{text,speakerName}=pendingQueue[pendingQueue.length-1];pendingQueue=[];speakNow(text,speakerName);}
+    function unlockGesture(){
+      if(_unlockDone)return;
+      _unlockDone=true;
+      if(!synth){gestureReady=true;return;}
+      assignVoices();
+      // Speak synchronously on the gesture thread — required by iOS Safari
+      const silent=new SpeechSynthesisUtterance('\u200B');
+      silent.volume=0.001;silent.rate=2;
+      silent.voice=lyraVoice||null;
+      let resolved=false;
+      function resolve(){if(resolved)return;resolved=true;gestureReady=true;voicesReady=true;setTimeout(flushPending,50);}
+      silent.onend=resolve;
+      silent.onerror=resolve;
+      setTimeout(resolve,600);
+      try{synth.cancel();synth.speak(silent);}catch(e){resolve();}
+    }
+    function speakWhenReady(text,speakerName='LYRA'){
+      if(!enabled||!synth)return;
+      if(speaking||synth.speaking){try{synth.cancel();}catch(e){}speaking=false;setIndicator(false);}
+      if(!voicesReady||!lyraVoice)assignVoices();
+      if(gestureReady){
+        speakNow(text,speakerName);
+      }else{
+        pendingQueue=[{text,speakerName}];
+      }
+    }
+    function stop(){if(!synth)return;if(speaking||synth.speaking)synth.cancel();speaking=false;pendingQueue=[];setIndicator(false);}let _iosKeepalive=null;function startKeepalive(){if(!synth||_iosKeepalive)return;_iosKeepalive=setInterval(()=>{if(!enabled||speaking||synth.speaking)return;const k=new SpeechSynthesisUtterance('\u200B');k.volume=0;k.rate=2;try{synth.speak(k);}catch(e){}},20000);}function stopKeepalive(){if(_iosKeepalive){clearInterval(_iosKeepalive);_iosKeepalive=null;}}
+    function toggle(){enabled=!enabled;if(!enabled)stop();updateBadge();return enabled;}
+    return{speakWhenReady,stop,toggle,unlockGesture,startKeepalive,stopKeepalive,isEnabled:()=>enabled};
+  })();
+
+  // YouTube iframe music removed — unreliable on mobile.
+  // Music is handled by the Web Audio drone instead.
+  let musicState={on:true,iframe:null,current:null};
+  function getBgMusic(){return document.getElementById('bg-music');}
+  function loadTrack(key){
+    const audio=getBgMusic();if(!audio)return;
+    if(!musicState.on)return;
+    if(key==='base'){
+      audio.volume=0.25;
+      audio.play().catch(()=>{});
+    } else if(key==='win'||key==='fail'){
+      audio.pause();
+    }
+  }
+  function stopMusic(){const audio=getBgMusic();if(audio)audio.pause();}
+  function toggleMusic(){
+    musicState.on=!musicState.on;
+    const btn=document.getElementById('music-toggle');
+    const audio=getBgMusic();
+    if(musicState.on){
+      btn.textContent='🔊';btn.classList.remove('muted');
+      if(audio){audio.volume=0.25;audio.play().catch(()=>{});}
+    } else {
+      btn.textContent='🔇';btn.classList.add('muted');
+      if(audio)audio.pause();
+    }
+  }
+  function toggleVoice(){const on=Voice.toggle();const btn=document.getElementById('voice-toggle');btn.textContent=on?'🎙️':'🔇';btn.title=on?'Voice ON':'Voice OFF';}
+
+ let failTriggered=false;const VAULT_TIME_LIMIT=900;
+  let timerState={start:null,elapsed:0,interval:null};
+  function startTimer(){if(timerState.interval)clearInterval(timerState.interval);timerState.start=Date.now();timerState.vaultStart=Date.now();failTriggered=false;document.getElementById('mission-timer').classList.add('visible');loadTrack('base');timerState.interval=setInterval(()=>{timerState.elapsed=Math.floor((Date.now()-timerState.start)/1000);const el=document.getElementById('timer-display');el.textContent=fmt(timerState.elapsed);const ve=Math.floor((Date.now()-(timerState.vaultStart||timerState.start))/1000);if(ve>=750){el.className='timer-display phase-end';}else{el.className='timer-display';}const vaultElapsed=Math.floor((Date.now()-timerState.vaultStart)/1000);if(vaultElapsed>=VAULT_TIME_LIMIT&&!failTriggered){failTriggered=true;triggerTimerFail();}},1000);}
+  function stopTimer(){if(timerState.interval){clearInterval(timerState.interval);timerState.interval=null;}}
+  function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+
+  let sfxCtx=null;
+function getAC(){if(!sfxCtx)sfxCtx=new(window.AudioContext||window.webkitAudioContext)();if(sfxCtx.state==='suspended')sfxCtx.resume();return sfxCtx;}function unlockAudio(){try{if(sfxCtx&&sfxCtx.state==='suspended'){sfxCtx.resume().catch(()=>{});}else if(!sfxCtx){sfxCtx=new(window.AudioContext||window.webkitAudioContext)();sfxCtx.resume().catch(()=>{});}}catch(e){}}document.addEventListener('touchstart',unlockAudio,{once:true,passive:true});document.addEventListener('mousedown',unlockAudio,{once:true,passive:true});
+  let lastTickTime=0;
+  function noiseBuf(ac,dur){const sr=ac.sampleRate,len=Math.max(1,Math.floor(sr*dur)),buf=ac.createBuffer(1,len,sr),data=buf.getChannelData(0);for(let i=0;i<len;i++)data[i]=Math.random()*2-1;const src=ac.createBufferSource();src.buffer=buf;return src;}
+function playTick(){const now=Date.now();if(now-lastTickTime<48)return;lastTickTime=now;const ac=getAC(),t=ac.currentTime;const s=noiseBuf(ac,.003),h=ac.createBiquadFilter(),g=ac.createGain();h.type='highpass';h.frequency.value=4200;g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.0001,t+.003);s.connect(h);h.connect(g);g.connect(ac.destination);s.start(t);s.stop(t+.004);}
+  function playSnap(){const ac=getAC(),t=ac.currentTime;const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(78,t);o.frequency.exponentialRampToValueAtTime(22,t+.12);g.gain.setValueAtTime(0.8,t);g.gain.exponentialRampToValueAtTime(.0001,t+.14);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.16);}
+  function playLock(ok){const ac=getAC(),t=ac.currentTime;if(ok){const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.setValueAtTime(660,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.3,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.4);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+.45);}else{const o=ac.createOscillator(),g=ac.createGain();o.type='sawtooth';o.frequency.setValueAtTime(140,t);o.frequency.linearRampToValueAtTime(80,t+.35);g.gain.setValueAtTime(.5,t+.005);g.gain.exponentialRampToValueAtTime(.0001,t+.38);o.connect(g);g.connect(ac.destination);o.start(t+.005);o.stop(t+.40);}}
+  function playVaultOpen(){const ac=getAC(),t=ac.currentTime;const b=ac.createOscillator(),bg=ac.createGain();b.type='sine';b.frequency.setValueAtTime(62,t);b.frequency.exponentialRampToValueAtTime(14,t+.55);bg.gain.setValueAtTime(.9,t);bg.gain.exponentialRampToValueAtTime(.0001,t+.6);b.connect(bg);bg.connect(ac.destination);b.start(t);b.stop(t+.65);[[440,.9,.20],[550,1.02,.18],[660,1.15,.16],[880,1.3,.13]].forEach(([f,d,a])=>{const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.setValueAtTime(f,t+d);g.gain.setValueAtTime(0,t+d);g.gain.linearRampToValueAtTime(a,t+d+.08);g.gain.exponentialRampToValueAtTime(.0001,t+d+1.8);o.connect(g);g.connect(ac.destination);o.start(t+d);o.stop(t+d+1.9);});}
+
+  const VAULTS = [
+    {
+      id: 'cell-cycle',
+      icon: '🔬',
+      name: 'The Cell Cycle',
+      tagline: 'IMC — the master program of all cell division',
+      discussion: `<p>The cell cycle is the ordered series of events that a cell goes through to grow and divide. It begins with Interphase — the longest and most active stage. During interphase the cell grows, copies all of its DNA, and prepares the molecular machinery it will need for division. This is not a resting state; it is a preparation state.</p><p>Mitosis is the second major phase, during which the copied chromosomes are sorted and pulled to opposite ends of the cell. It is a carefully choreographed four-stage process that ensures each daughter cell receives an identical, complete set of genetic material. Finally, Cytokinesis physically splits the cytoplasm and membrane in two, producing two genetically identical daughter cells — completing the cycle.</p>`,
+      storySuccess: 'Cell cycle sequencing confirmed. Division protocols restored across Sector A. The city\'s biological restoration network is back online. Thousands of people just bought another twelve hours.',
+      storyFail: 'Cell cycle sequence failed. Sector A remains offline. The three stages must be entered in the correct order. Retry.',
+      steps: [
+        {bold:'Interphase',rest:'— cell grows and replicates its DNA',microLesson:'Interphase is always first. The cell spends 90% of the cycle here — growing (G1), copying DNA (S phase), and preparing for division (G2). Nothing visible happens yet, but everything important is being set up.'},
+        {bold:'Mitosis',rest:'— chromosomes are divided into two nuclei',microLesson:'Mitosis follows Interphase. The duplicated chromosomes are carefully separated into two identical sets. This is the visible, dramatic phase of division — it consists of five sub-stages (PMATC).'},
+        {bold:'Cytokinesis',rest:'— cytoplasm splits into two daughter cells',microLesson:'Cytokinesis is always last. The physical splitting of the cell body completes the cycle. In animal cells a cleavage furrow forms; in plant cells a new cell plate grows from the center outward.'},
+      ],
+      vaultScene: [
+        {speaker:'lyra',text:{default:"Sentinel. We have a secure line. Listen carefully — what I'm about to tell you doesn't leave this channel.",returning:"You're back. Good. The city held through the night — barely. Same stakes. Fresh eyes. Let's go.",streak_high:"I've been watching your progress. You move fast. Good. We need that today more than ever.",desperate:"I wasn't sure you'd answer. I'm glad you did. Listen — there's no time for pleasantries."}},
+        {speaker:'lyra',text:{default:"The cell renewal network is dead. Every division reactor in Sector A has been offline for six hours. Without them, tissue regeneration stops entirely.",streak_low:"Sector A is still dark. The teams on the ground are running out of ways to hold people together.",desperate:"Sentinel, I have to be honest with you. People are not doing well. This is the last window."}},
+        {speaker:'sentinel',text:{default:"How long do we have before the next restoration cycle fails?",returning:"Same question I always ask — how long?",streak_high:"Tell me the exact window. I want to move."}},
+        {speaker:'lyra',text:{default:"Thirty-one hours. Maybe less. Three locks, three sequences. The cell cycle is the master program — start here. You know it.",streak_high:"Twenty-eight hours — less than last time. Three sequences. You have them.",desperate:"Nineteen hours. Three sequences, three vaults. You haven't changed. Neither have I."}},
+        {speaker:'sentinel',text:{default:"Then stop counting down and open the channel. Where do I start?",streak_high:"Already running. Open the first lock.",desperate:"I'm here. That's all that matters. Let's finish this."}},
+        {speaker:'lyra',text:{default:"The city's biological health is at twenty-three percent and falling. Every second counts. Three stages, Sentinel. In the correct order.",streak_high:"Three stages. You know them. Let's make this quick.",desperate:"Twenty-three percent. Don't let it go lower. Go."}}
+      ]
+    },
+    {
+      id: 'mitosis',
+      icon: '🧬',
+      name: 'Mitosis',
+      tagline: 'PMATC — five phases that split one nucleus into two daughter cells',
+      discussion: `<p>Mitosis is the process by which a eukaryotic cell divides its copied chromosomes into two identical nuclei, and is completed by cytokinesis. Together these proceed through five distinct phases — PMATC. In Prophase, the chromatin condenses into visible chromosomes, the nuclear envelope breaks down, and the spindle apparatus begins to form. In Metaphase, all chromosomes line up precisely along the cell's equatorial plate — this alignment is checked by the cell before it proceeds.</p><p>Anaphase begins when the sister chromatids are pulled apart by spindle fibers contracting toward opposite poles of the cell. The cell visibly elongates as chromosomes move. In Telophase, a nuclear envelope reforms around each set of chromosomes at the two poles, and the chromosomes begin to decondense back into chromatin. Finally, Cytokinesis physically divides the cytoplasm — via a cleavage furrow in animal cells or a cell plate in plant cells — producing two separate, genetically identical daughter cells.</p>`,
+      storySuccess: 'Mitotic sequence confirmed. Chromosome division protocols active in Sector B. City biological health climbing. The spindle is running true.',
+      storyFail: 'Mitosis sequence scrambled. PMATC must be entered in order. One wrong phase and the chromosomes cannot be sorted. Retry.',
+      steps: [
+        {bold:'Prophase',rest:'— chromosomes condense, spindle forms, nuclear envelope breaks down',microLesson:'Prophase is always first in mitosis. The DNA condenses from chromatin threads into distinct, visible chromosomes. The mitotic spindle begins forming from centrioles. The nuclear envelope disintegrates so spindle fibers can access chromosomes.'},
+        {bold:'Metaphase',rest:'— chromosomes align at the cell\'s equatorial plate',microLesson:'Metaphase is the alignment phase. All chromosomes are moved to the middle of the cell (the metaphase plate) by spindle fibers attached to kinetochores. A spindle checkpoint verifies all chromosomes are properly attached before the cell proceeds.'},
+        {bold:'Anaphase',rest:'— sister chromatids are pulled to opposite poles',microLesson:'Anaphase begins when cohesin proteins holding sister chromatids together are cleaved. Spindle fibers shorten, pulling each chromatid to an opposite pole. The cell elongates. Each pole now has a complete set of chromosomes.'},
+        {bold:'Telophase',rest:'— nuclear envelopes reform around each chromosome set',microLesson:'Telophase reverses prophase. Nuclear envelopes reform around each group of chromosomes at opposite poles. Chromosomes begin to decondense back into chromatin. The spindle disassembles. The cell now has two nuclei and is ready for cytokinesis.'},
+        {bold:'Cytokinesis',rest:'— the cytoplasm divides, forming two separate daughter cells',microLesson:'Cytokinesis is the final step, completing PMATC. It overlaps with late telophase. In animal cells, a contractile ring of actin filaments pinches the cell membrane inward to form a cleavage furrow. In plant cells, a cell plate forms from vesicles and develops into a new cell wall, dividing the cell in two.'},
+      ],
+      vaultScene: [
+        {speaker:'lyra',text:{default:"Second lock. Five phases this time — the complete choreography of chromosome separation and cell division. Get them in the right order.",returning:"Five phases. You've been here before. Use that memory.",streak_high:"Five stages. You cracked the first vault in sequence — this is the same instinct.",desperate:"Five phases, and we're already behind. Every wrong turn costs us time we don't have."}},
+        {speaker:'sentinel',text:{default:"I understand. What's the status of Sector B?",streak_high:"Sector B status — what's the number?",returning:"Sector B — how bad?"}},
+        {speaker:'lyra',text:{default:"Thirty thousand people without functioning tissue regeneration by morning if this lock holds. The sequence component is sealed behind it.",streak_low:"Thirty thousand people. That number doesn't get easier to say.",desperate:"By dawn. That's all we have."}},
+        {speaker:'sentinel',text:{default:"Then we don't waste time. Give me the signal.",streak_high:"Signal's already given. Dialing now.",desperate:"Waiting isn't something I do. Let's go."}},
+        {speaker:'lyra',text:{default:"The uplink is live. Five phases. PMATC. Don't let me lose this relay.",streak_high:"Relay is live. At your pace, this won't take long.",desperate:"Relay is live. If you've never been faster in your life, now is when it happens."}},
+        {speaker:'sentinel',text:{default:"You won't. Open the lock, Lyra.",returning:"You never lose the relay. Open it.",streak_high:"Open it. I'm already moving."}},
+        {speaker:'lyra',text:{default:"Channel is clear. The dial is yours. Don't come back until it's done.",streak_high:"Channel clear. Go.",desperate:"Channel's clear. Do not stop."}}
+      ]
+    },
+    {
+      id: 'meiosis',
+      icon: '🔄',
+      name: 'Meiosis',
+      tagline: 'PMAT I → PMAT II — eight phases that produce four unique cells',
+      discussion: `<p>Meiosis is the specialized cell division that produces gametes — sperm and egg cells — each with half the normal chromosome number. It consists of two sequential rounds of division. Meiosis I is the reductive division: Prophase I features the crucial event of crossing over, where homologous chromosomes exchange genetic material, creating genetic diversity. Metaphase I lines up homologous pairs at the equator (not individual chromosomes like in mitosis). Anaphase I separates whole homologous chromosomes — not sister chromatids — to opposite poles. Telophase I completes the first division, producing two cells each with half the chromosome number.</p><p>Meiosis II is essentially a mitotic division of each of those two cells. Prophase II is brief — no new DNA synthesis occurs. Metaphase II lines individual chromosomes at each cell's equator. Anaphase II separates the sister chromatids that have been held together since the original DNA replication. Telophase II completes the process, yielding four genetically unique haploid daughter cells.</p>`,
+      storySuccess: '"Meiotic cascade complete. Genetic diversity protocols restored. The Vita-Formula is synthesized. Bio-Vault 38 is open. Eight million people will wake up tomorrow because you remembered what life is made of." — Commander Lyra, signing off.',
+      storyFail: 'Meiosis sequence broken. Eight phases, two rounds of division. A single wrong phase collapses the whole cascade. Review the micro-lessons and retry.',
+      steps: [
+        {bold:'Prophase I',rest:'— homologous chromosomes pair up; crossing over occurs',microLesson:'Prophase I is unique to meiosis. Homologous chromosomes pair up in a process called synapsis, forming tetrads. Crossing over (chiasmata formation) shuffles genetic material between homologs — this is the primary source of genetic variation in sexual reproduction.'},
+        {bold:'Metaphase I',rest:'— homologous pairs align at the equatorial plate',microLesson:'In Metaphase I, homologous pairs (not individual chromosomes) align at the middle of the cell. The orientation of each pair is random — this independent assortment is a second source of genetic variation. Compare to Metaphase II, where individual chromosomes align.'},
+        {bold:'Anaphase I',rest:'— homologous chromosomes separate to opposite poles',microLesson:'In Anaphase I, whole homologous chromosomes (each still consisting of two sister chromatids) are pulled apart to opposite poles. Sister chromatids are NOT separated yet — that happens in Anaphase II. This is the reductive step that halves the chromosome number.'},
+        {bold:'Telophase I',rest:'— two haploid cells form after first division',microLesson:'Telophase I ends the first meiotic division. Two cells form, each with half the original chromosome number. Depending on the species, a brief interkinesis may follow — but crucially, no new DNA is synthesized before Meiosis II begins.'},
+        {bold:'Prophase II',rest:'— spindle reforms in each of the two cells',microLesson:'Prophase II begins in both haploid cells simultaneously. The nuclear envelope breaks down again and a new spindle apparatus forms. No DNA replication occurs between the two meiotic divisions — the chromosomes in each cell still consist of two sister chromatids.'},
+        {bold:'Metaphase II',rest:'— individual chromosomes align at each cell\'s equator',microLesson:'In Metaphase II, individual chromosomes (not pairs) line up at the metaphase plate — similar to mitotic metaphase. Each spindle fiber attaches to one kinetochore of a sister chromatid. Both cells undergo this simultaneously.'},
+        {bold:'Anaphase II',rest:'— sister chromatids finally separate to opposite poles',microLesson:'Anaphase II is when sister chromatids finally separate. Cohesin proteins at the centromere are cleaved and spindle fibers pull the individual chromatids (now called chromosomes) to opposite poles. This mirrors mitotic anaphase.'},
+        {bold:'Telophase II',rest:'— four haploid daughter cells are produced',microLesson:'Telophase II completes meiosis. Nuclear envelopes reform around four sets of chromosomes across four cells. Cytokinesis follows, producing four genetically unique haploid cells — gametes. Each has half the chromosome number of the original cell.'},
+      ],
+      vaultScene: [
+        {speaker:'lyra',text:{default:"Third lock. The final one. Eight phases across two divisions — this is the most complex sequence in the vault. Don't let that shake you.",returning:"Eight phases. Two rounds. You've been here before. You know how it feels when it clicks.",streak_high:"Two down, one left. Eight phases. You're moving faster than I've ever seen. This is the one that separates good from great.",desperate:"Final lock. Eight phases. We're almost out of time but you're still here, and that means everything."}},
+        {speaker:'sentinel',text:{default:"I haven't broken yet.",returning:"I remember what it costs. And I remember how to pay it.",streak_high:"Breaking isn't on my list today.",desperate:"I don't break. You know that by now."}},
+        {speaker:'lyra',text:{default:"The genetic restoration network collapsed an hour ago. Every cell renewal protocol in the city depends on this sequence being right.",streak_low:"The network is down. Whatever this costs you — it costs them more.",desperate:"Sentinel, children are waiting. That is simply what is true."}},
+        {speaker:'sentinel',text:{default:"I know what's at stake. I've known since the moment you called me.",returning:"You don't have to tell me again.",streak_high:"Eight phases. Two rounds of PMAT. I have them. Let's move."}},
+        {speaker:'lyra',text:{default:"Then prove it. Eight stages. Two rounds of PMAT. Every one of them has to be right.",streak_high:"Eight stages. At your pace, this won't take long. The synthesis team is standing by.",desperate:"Eight stages. Eight chances to give those people a tomorrow."}},
+        {speaker:'sentinel',text:{default:"Tell them to get ready. This lock won't hold.",streak_high:"Tell them to get ready right now. I'm opening it.",desperate:"Tell them. I'm already dialing."}},
+        {speaker:'lyra',text:{default:"That's what I needed to hear. Final vault is yours, Sentinel. Don't let this city down.",streak_high:"You haven't failed a single lock today. Don't start now. Go. Fast. Precise. Both.",desperate:"The city is listening. You have never failed a lock — not once. That record ends here, or it continues. Your choice."}}
+      ]
+    }
+  ];
+
+  const BRIDGE_QUESTIONS = [
+    null,
+    {
+      icon: '🧬',
+      question: 'The Cell Cycle has three main phases. Which one is when the actual chromosome separation happens?',
+      options: [
+        {text:'Interphase — this is when chromosomes are separated into daughter cells',correct:false},
+        {text:'Mitosis — the phase dedicated to sorting and separating the duplicated chromosomes',correct:true},
+        {text:'Cytokinesis — this is when chromosomes divide before the cell splits',correct:false},
+        {text:'S phase — DNA is copied and chromosomes separate at the same time',correct:false},
+      ],
+      explanation:'Interphase is for preparation (including DNA replication), and Mitosis is the phase dedicated to chromosome separation. The chromosomes separate during Mitosis, which is followed by Cytokinesis — together these make up the five-phase sequence Prophase, Metaphase, Anaphase, Telophase, and Cytokinesis (PMATC).'
+    },
+    {
+      icon: '🔄',
+      question: 'Mitosis produces two identical diploid cells. How does Meiosis I differ from a normal mitotic division?',
+      options: [
+        {text:'In Meiosis I, sister chromatids separate — just like in mitosis',correct:false},
+        {text:'In Meiosis I, homologous chromosome pairs separate — halving the chromosome number',correct:true},
+        {text:'Meiosis I skips Prophase and goes straight to chromosome alignment',correct:false},
+        {text:'Meiosis I produces four cells instead of two in a single division',correct:false},
+      ],
+      explanation:'The critical difference in Meiosis I is that homologous chromosomes (not sister chromatids) separate. This reductive division halves the chromosome number. Crossing over in Prophase I and random orientation in Metaphase I also make Meiosis I fundamentally unlike mitosis. Sister chromatids only separate in Meiosis II.'
+    }
+  ];
+
+  const SR=(() => {
+    const KEY='biovault_sr_flags';
+    function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){return[];}}
+    function save(flags){try{localStorage.setItem(KEY,JSON.stringify(flags));}catch(e){}}
+    function flagMissed(vaultId,stepIdx,stepBold,vaultIcon){const flags=load();const existing=flags.findIndex(f=>f.vaultId===vaultId&&f.stepIdx===stepIdx);const entry={vaultId,stepIdx,stepBold,vaultIcon,timestamp:Date.now(),seen:false};if(existing>=0)flags[existing]=entry;else flags.push(entry);save(flags);}
+    function clearStep(vaultId,stepIdx){const flags=load().filter(f=>!(f.vaultId===vaultId&&f.stepIdx===stepIdx));save(flags);}
+    function getDue(){const now=Date.now();const THRESHOLD=24*60*60*1000;return load().filter(f=>(now-f.timestamp)>=THRESHOLD);}
+    function getAny(){return load();}
+    function clearAll(){save([]);}
+    return{flagMissed,clearStep,getDue,getAny,clearAll};
+  })();
+
+  let playerName = '';
+  let runComplete = false;
+
+  const state = {
+    score:0,streak:0,totalCracked:0,cityHealth:23,
+    progress:{},
+    vaultPts:{},
+    vaultIdx:0,vault:null,codeMap:[],enteredCodes:[],slotIdx:0,
+    attempts:0,maxAttempts:3,waiting:false,hintVisible:false,hintUsed:false,
+    dialAngle:0,nearestNum:0,snappedNum:null,dragging:false,lastAngle:0,lastTickAngle:0,
+    storyScene:0,storyBeatIdx:0,storyTyping:false,storyTypingId:0,storyTimeout:null,autoAdvanceTimeout:null,
+    vsTyping:false,vsTypingId:0,vsBeatIdx:0,vsTimeout:null,vsAutoTimeout:null,
+    isEmergencyVault:false,emergencySteps:[],bridgeNextVaultIdx:0,
+  };
+  VAULTS.forEach(v=>{state.progress[v.id]={cracked:false,stars:0};});
+
+  const $=id=>document.getElementById(id);
+  const screens={story:$('screen-story'),vaultScene:$('screen-vault-scene'),menu:$('screen-menu'),disc:$('screen-discussion'),vault:$('screen-vault'),bridge:$('screen-bridge'),leaderboard:$('screen-leaderboard'),nameentry:$('screen-nameentry'),recap:$('screen-recap')};
+  const dialBody=$('dial-body'),overlay=$('overlay');
+  let canvas,ctx;
+  function initCanvas(){canvas=$('dial-canvas');const sz=dialBody.offsetWidth||276;canvas.width=sz;canvas.height=sz;ctx=canvas.getContext('2d');}
+
+  function getMood(){const isReturning=VAULTS.some(v=>state.progress[v.id].cracked);if(state.streak>=2)return'streak_high';if(state.streak===0&&state.totalCracked===0&&!isReturning)return'default';if(isReturning&&state.totalCracked>0)return'returning';if(state.streak===0)return'streak_low';return'default';}
+  function pickDialogue(beat){const text=beat.text;if(typeof text==='string')return text;const mood=getMood();return text[mood]||text['default'];}
+  function updateLyraMoodTag(){const tag=$('vs-lyra-mood-tag');if(!tag)return;const mood=getMood();tag.className='vs-lyra-mood-tag show';if(mood==='streak_high'){tag.className+=' mood-proud';tag.textContent='◆ CONFIDENT';}else if(mood==='desperate'){tag.className+=' mood-desperate';tag.textContent='◆ DESPERATE';}else if(mood==='returning'){tag.className+=' mood-calm';tag.textContent='◆ RESOLUTE';}else if(mood==='streak_low'){tag.className+=' mood-urgent';tag.textContent='◆ URGENT';}else{tag.className+=' mood-calm';tag.textContent='◆ CALM';}}
+
+  const VAULT_TO_SECTOR=[0,1,2];
+  function updateCityMap(){const health=state.cityHealth;const fill=$('city-health-fill');if(fill)fill.setAttribute('width',Math.round((health/100)*376));const pctEl=$('city-health-pct-svg');if(pctEl){pctEl.textContent=Math.round(health)+'%';pctEl.className.baseVal=health>50?'city-health-pct active':'city-health-pct';}VAULTS.forEach((v,idx)=>{const sectorIdx=VAULT_TO_SECTOR[idx];const sectorEl=$(`map-sector-${sectorIdx}`);const labelEl=$(`map-label-${sectorIdx}`);if(!sectorEl)return;const cracked=state.progress[v.id].cracked;const isCurrent=state.vaultIdx===idx&&!cracked;if(cracked){sectorEl.className.baseVal='city-sector active';if(labelEl)labelEl.className.baseVal='sector-label active';}else if(isCurrent){sectorEl.className.baseVal='city-sector partial';}else{sectorEl.className.baseVal='city-sector';if(labelEl)labelEl.className.baseVal='sector-label';}});}
+  function updateCityHealth(pct){state.cityHealth=Math.max(0,Math.min(100,pct));updateCityMap();}
+
+  function showNameEntry() {
+    const saved = localStorage.getItem('biovault38_player_name');
+    if (saved && saved.trim()) {
+      playerName = saved.trim().toUpperCase();
+      onNameConfirmed();
+      return;
+    }
+    const ne = $('screen-nameentry');
+    ne.style.display = 'flex';
+    setTimeout(() => { const inp = $('ne-input'); if(inp) inp.focus(); }, 400);
+  }
+  function confirmName() {
+    Voice.unlockGesture();
+  const inp = $('ne-input');
+    const val = (inp ? inp.value : '').trim().toUpperCase();
+    if (!val || val.length < 2) {
+      const err = $('ne-error');
+      if (err) err.textContent = '⚠ NAME MUST BE AT LEAST 2 CHARACTERS';
+      setTimeout(() => { if(err) err.textContent = ''; }, 2200);
+      return;
+    }
+    playerName = val;
+    localStorage.setItem('biovault38_player_name', val);
+    const ne = $('screen-nameentry');
+    ne.style.opacity = '0';
+    ne.style.transition = 'opacity 0.4s ease';
+    setTimeout(() => { ne.style.display = 'none'; ne.style.opacity = '1'; ne.style.transition = ''; onNameConfirmed(); }, 420);
+  }
+  function onNameConfirmed() {     Drone.stop();     runComplete = false;     state.vaultPts = {};
+    const banner = $('player-banner-name');
+    if (banner) banner.textContent = playerName;
+    showScreen('menu');
+    buildMenu();
+  }
+
+  function openLeaderboard() {
+    refreshLeaderboard();
+    showScreen('leaderboard');
+  }
+  function closeLeaderboard() {
+    showScreen('menu');
+    buildMenu();
+  }
+  async function refreshLeaderboard() {
+    const container = $('lb-entries');
+    if (!container) return;
+    container.innerHTML = '<div class="lb-empty">Loading scores…</div>';
+    const vaultIds = VAULTS.map(v=>v.id);
+    const entries = await LB.getRanked(vaultIds);
+    container.innerHTML = '';
+    if (!entries.length) {
+      container.innerHTML = '<div class="lb-empty">No mission data yet. Complete your first run to appear here.</div>';
+      return;
+    }
+    entries.forEach((e, i) => {
+      const rank = i + 1;
+      const rankClass = rank === 1 ? 'r1' : rank === 2 ? 'r2' : rank === 3 ? 'r3' : '';
+      const entryClass = rank === 1 ? 'gold-entry' : rank === 2 ? 'silver-entry' : rank === 3 ? 'bronze-entry' : '';
+      const isMe = e.name === playerName;
+      const t = e.bestTime || 0;
+      const timeStr = `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+      const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+      const pctDisplay = e.complete ? `${e.finalScore.toFixed(1)}%` : `${e.vaultsDone}/${e.vaultsTotal}`;
+      const row = document.createElement('div');
+      row.className = `lb-entry ${entryClass} ${isMe ? 'my-entry' : ''}`;
+      row.innerHTML = `
+        <div class="lb-rank ${rankClass}">${rankEmoji}</div>
+        <div class="lb-name ${isMe ? 'me' : ''}">${e.name}${isMe ? '<span class="lb-my-badge">YOU</span>' : ''}</div>
+        <div class="lb-avg">${pctDisplay}</div>
+        <div class="lb-best">${e.result2}</div>
+        <div class="lb-vaults">${e.result1}</div>
+        <div class="lb-time">${timeStr}</div>
+      `;
+      container.appendChild(row);
+    });
+  }
+  async function exportCSV() {
+    const csv = await LB.exportCSV(VAULTS.map(v=>v.id));
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `BioVault38_Scores_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  async function clearLeaderboard() {
+    if (!confirm('Clear ALL leaderboard scores? This cannot be undone.')) return;
+    const adminKey = prompt('Enter admin reset key:');
+    if (!adminKey) return;
+    try {
+      await LB.clear(adminKey);
+      refreshLeaderboard();
+    } catch (e) {
+      alert(e.message || 'Failed to clear leaderboard.');
+    }
+  }
+
+  async function saveRunScore() {
+    if (!playerName || runComplete) return;
+    runComplete = true;
+    await LB.recordRun(playerName, state.vaultPts, timerState.elapsed);
+  }
+
+  function showVictoryScreen(){
+  stopTimer();Voice.stop();loadTrack('win');saveRunScore();
+  Object.values(screens).forEach(s=>s.classList.remove('active'));
+  overlay.classList.remove('show');
+  $('mission-timer').classList.remove('visible');
+  const vs=$('screen-victory');
+  $('v-final-score').textContent=state.score;
+  $('v-final-time').textContent=fmt(timerState.elapsed);
+  $('v-final-streak').textContent=state.streak;
+
+  // Determine perfect-run status: did the student crack every vault on the first try?
+  const totalAttempts=Object.values(state.vaultPts||{}).length;
+  const perfectVaults=Object.entries(state.vaultPts||{}).filter(([id,pts])=>pts>=220).length; // 220 = first-try base score
+  let closing;
+  if(perfectVaults===3){
+    closing=`Three for three, ${playerName} — first try, every lock. I've run this channel for years and I have never seen it done that clean. The synthesis team is in awe. So am I.`;
+  } else if(perfectVaults>=1){
+    closing=`${playerName}, you got there — and that's what matters. A few locks fought you, but you outlasted every one of them. The city doesn't care how clean it was. It just woke up.`;
+  } else {
+    closing=`${playerName}... you didn't quit. Not once. Every lock pushed back and you pushed harder. That's not in the manual, Sentinel — that's just who you are.`;
+  }
+
+  const narrativeEl=$('victory-narrative');
+  narrativeEl.innerHTML=`<strong>Commander Lyra, final transmission:</strong> "Cell cycle restored. Division protocols running at full capacity. The Vita-Formula is synthesized — every sequence from Interphase to Cytokinesis, from Prophase to Telophase, all the way through Meiosis II. Bio-Vault 38 is open. Eight million people will wake up tomorrow because you remembered what life is made of. ${closing}"`;
+
+  vs.style.display='flex';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>vs.style.opacity='1'));
+  vs.classList.add('active');
+
+  Voice.unlockGesture();
+  Voice.speakWhenReady(closing,'LYRA');
+}
+  function restartFromVictory(){const vs=$('screen-victory');vs.classList.remove('active');vs.style.display='none';vs.style.opacity='0';state.score=0;state.streak=0;state.totalCracked=0;state.cityHealth=23;state.vaultPts={};VAULTS.forEach(v=>{state.progress[v.id]={cracked:false,stars:0};});timerState.elapsed=0;failTriggered=false;runComplete=false;stopMusic();Drone.start();showNameEntry();}
+  function triggerTimerFail(){stopTimer();Voice.stop();loadTrack('fail');const allDone=VAULTS.every(v=>state.progress[v.id].cracked);if(allDone)return;overlay.classList.remove('show');Object.values(screens).forEach(s=>s.classList.remove('active'));$('mission-timer').classList.remove('visible');const fp=$('fail-progress');const existingRows=fp.querySelectorAll('.fail-vault-row');existingRows.forEach(r=>r.remove());VAULTS.forEach(v=>{const row=document.createElement('div');row.className='fail-vault-row';const cracked=state.progress[v.id].cracked;row.innerHTML=`<span class="fail-vault-icon">${v.icon}</span><span class="fail-vault-name">${v.name}</span><span class="fail-vault-status ${cracked?'done':'undone'}">${cracked?'✓ CRACKED':'✗ FAILED'}</span>`;fp.appendChild(row);});const fs=$('screen-fail');fs.style.display='flex';requestAnimationFrame(()=>requestAnimationFrame(()=>fs.style.opacity='1'));fs.classList.add('active');}
+  
+  function menuFromFail(){const fs=$('screen-fail');fs.classList.remove('active');fs.style.display='none';fs.style.opacity='0';stopTimer();loadTrack('base');showScreen('menu');buildMenu();}
+
+  const BOOT_MESSAGES=['HANDSHAKE PROTOCOL INITIATED…','SENTINEL ID VERIFICATION…','ENCRYPTION LAYER ACTIVE…','NEURAL SYNC CONFIRMED…','SECURE CHANNEL ESTABLISHED'];
+  let _bootDone=null,_bootComplete=false,_gestureFired=false;
+  function runBoot(onDone){_bootDone=onDone;const bar=$('boot-bar'),status=$('boot-status'),hint=$('boot-tap-hint');let pct=0,msgIdx=0;status.textContent=BOOT_MESSAGES[0];const tick=setInterval(()=>{pct+=Math.random()*4+1;if(pct>=100)pct=100;bar.style.width=pct+'%';if(pct>=60&&hint)hint.style.opacity='1';const newMsg=Math.floor((pct/100)*BOOT_MESSAGES.length);if(newMsg!==msgIdx&&newMsg<BOOT_MESSAGES.length){msgIdx=newMsg;status.textContent=BOOT_MESSAGES[msgIdx];}if(pct>=100){clearInterval(tick);status.textContent='✓ TRANSMISSION LIVE — TAP TO ENTER';_bootComplete=true;if(_gestureFired)_doBoot();}},60);}
+ function _doBoot(){
+  const bootEl=$('screen-boot');
+  bootEl.classList.add('fade-out');
+  bootEl.style.pointerEvents='none';
+  setTimeout(()=>{
+    bootEl.style.display='none';
+    const gate=document.getElementById('screen-access');
+   if(gate){
+      gate.style.display='flex';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{gate.style.opacity='1';}));
+      setTimeout(()=>{const inp=document.getElementById('access-code-input');if(inp)inp.focus();},450);
+    } else {
+      if(_bootDone)_bootDone();
+    }
+  },650);
+}
+  function bootTap(){
+    Voice.unlockGesture(); // must be first — synchronous on gesture thread
+    const audio=document.getElementById('bg-music');
+    if(audio){
+      audio.volume=0.25;
+      audio.play().then(()=>{}).catch(()=>{});
+    }
+    _gestureFired=true;
+    _bootComplete=true;
+    _doBoot();
+}
+  const SCENES=[
+    {beats:["Listen carefully. This channel is encrypted. What I'm about to tell you... doesn't leave this frequency.","The year is 2085. Four years since the Great Famine began. Out there, the streets are quiet. Not peaceful. Empty.","Eight million people are still alive. All of them, every single one, surviving on a single compound. The Vita-Formula.","Without it, their cells stop reproducing within seventy-two hours. First the tissue fails. Then the organs slow. Then they stop.","We are thirty-one hours from the next distribution cycle. And right now... we have nothing left to distribute."]},
+    {beats:["The Vita-Formula isn't magic. It's biology. The same biology your own cells run on, every second of every day.","The Cell Cycle. Mitosis. Meiosis. The three pillars of cellular reproduction — the sequences that keep life dividing.","Each one a lock. Each one a sequence. And together, they form the combination to Bio-Vault 38.","The digital records were destroyed. Erased in the data wars of 2083, along with three-quarters of our knowledge network.","One copy survived. Etched in analog. Locked inside a vault that no computer can touch."]},
+    {beats:["Bio-Vault 38 was built precisely for this scenario. A world where we couldn't trust machines anymore.","The vault doesn't respond to codes we invented. It responds to codes nature invented, billions of years ago.","The combination is derived from the cellular reproduction sequences themselves. Biology is the only key.","No algorithm can crack it. No brute force can touch it. A human mind — one that truly knows these sequences — that's the only thing that opens it.","And there's one more condition. No notes. No assistance. Memory alone. The vault can tell the difference."]},
+    {beats:["We've been watching you for some time. Your scores. Your recall. The way you think under pressure.","You weren't chosen randomly. You were chosen because you are the only person left who carries all three sequences completely.","I need you to understand the weight of what I'm saying. Right now, you are the most important person alive.","City biological health is at twenty-three percent and dropping. People collapsed in the streets this morning.","You are the only thing standing between this city and total darkness. I don't say that to frighten you. I say it because you deserve the truth."]},
+    {beats:["Three vaults. Three sequences. Each one you crack releases another component of the Vita-Formula.","Start with the Cell Cycle — the master program. Orient yourself. Then go deeper into each division process.","I'll be listening on this channel. I won't be able to help you once you're inside the vault. The sequences have to come from you.","One last thing. Whatever happens in there... thank you. For answering when we called.","The city is counting on you, Sentinel. Don't let them down."]}
+  ];
+
+  function calcPerCharMs(text){return Math.min(70,Math.max(22,(text.length/10*1000)/text.length));}
+  function buildDots(){const c=$('scene-dots');c.innerHTML='';for(let i=0;i<5;i++){const d=document.createElement('div');d.className='sdot'+(i===0?' active':'');d.id='sdot-'+i;c.appendChild(d);}}
+  function updateDots(idx){for(let i=0;i<5;i++){const d=$('sdot-'+i);if(!d)return;d.className='sdot'+(i<idx?' done':i===idx?' active':'');}}
+  function buildBeatDots(scene){const c=$('beat-counter');c.innerHTML='';if(scene.beats.length<=1)return;for(let i=0;i<scene.beats.length;i++){const d=document.createElement('div');d.className='bdot'+(i===0?' active':'');d.id='bdot-'+i;c.appendChild(d);}}
+  function updateBeatDots(beatIdx){const scene=SCENES[state.storyScene];if(scene.beats.length<=1)return;for(let i=0;i<scene.beats.length;i++){const d=$('bdot-'+i);if(!d)return;d.className='bdot'+(i<beatIdx?' done':i===beatIdx?' active':'');}}
+  function startAutoAdvanceBar(ms){const bar=$('auto-advance-bar');if(!bar)return;bar.style.transition='none';bar.style.width='0%';bar.offsetWidth;bar.classList.add('running');bar.style.transition='width '+ms+'ms linear';bar.style.width='100%';}
+  function stopAutoAdvanceBar(){const bar=$('auto-advance-bar');if(!bar)return;bar.classList.remove('running');bar.style.transition='none';bar.style.width='0%';}
+  function updateFooterButtons(){const scene=SCENES[state.storyScene];const isLastBeat=state.storyBeatIdx>=scene.beats.length-1;const isLastScene=state.storyScene>=SCENES.length-1;const continueBtn=$('btn-story-next');const skipTypingBtn=$('btn-skip-typing');if(state.storyTyping){if(continueBtn)continueBtn.style.display='none';if(skipTypingBtn)skipTypingBtn.classList.add('visible');}else{if(skipTypingBtn)skipTypingBtn.classList.remove('visible');if(continueBtn){if(isLastBeat&&isLastScene){continueBtn.style.display='none';}else{continueBtn.style.display='';continueBtn.disabled=false;}}}}
+
+  function typeDialogue(text){
+    clearTimeout(state.storyTimeout);clearTimeout(state.autoAdvanceTimeout);stopAutoAdvanceBar();Voice.stop();
+    const myId=++state.storyTypingId;state.storyTyping=true;updateFooterButtons();
+    const el=$('dialogue-text');el.innerHTML='';const cursor=document.createElement('span');cursor.className='dialogue-cursor';
+    Voice.speakWhenReady(text,'LYRA');
+    const perCharMs=calcPerCharMs(text);let i=0;
+    function tick(){if(state.storyTypingId!==myId)return;if(i<text.length){el.textContent=text.slice(0,i+1);el.appendChild(cursor);i++;state.storyTimeout=setTimeout(tick,perCharMs);}else{state.storyTyping=false;cursor.style.animation='none';cursor.style.opacity='0';updateFooterButtons();scheduleAdvanceAfterTyping(myId);}}
+    tick();
+  }
+  function scheduleAdvanceAfterTyping(myId){const isLastBeat=state.storyBeatIdx>=SCENES[state.storyScene].beats.length-1;const isLastScene=state.storyScene>=SCENES.length-1;if(isLastBeat&&isLastScene){state.autoAdvanceTimeout=setTimeout(()=>{if(state.storyTypingId!==myId)return;showAcceptMission();},700);}else if(!isLastBeat){startAutoAdvanceBar(4500);state.autoAdvanceTimeout=setTimeout(()=>{if(state.storyTypingId!==myId)return;if(!state.storyTyping)advanceBeat();},4500);}}
+
+  function skipCurrentTyping(){if(!state.storyTyping)return;clearTimeout(state.storyTimeout);clearTimeout(state.autoAdvanceTimeout);stopAutoAdvanceBar();Voice.stop();const myId=++state.storyTypingId;state.storyTyping=false;const scene=SCENES[state.storyScene];const text=scene.beats[state.storyBeatIdx];const el=$('dialogue-text');el.textContent=text;updateFooterButtons();scheduleAdvanceAfterTyping(myId);}
+
+  function advanceBeat(){
+    clearTimeout(state.autoAdvanceTimeout);stopAutoAdvanceBar();
+    state.storyBeatIdx++;
+    updateBeatDots(state.storyBeatIdx);
+    SceneImages.loadBeatImage(state.storyScene, state.storyBeatIdx);
+    const scene=SCENES[state.storyScene];
+    typeDialogue(scene.beats[state.storyBeatIdx]);
+  }
+
+  function showStoryScene(sceneIdx){
+    SceneImages.reset();
+    state.storyScene=sceneIdx;state.storyBeatIdx=0;
+    clearTimeout(state.autoAdvanceTimeout);stopAutoAdvanceBar();
+    $('scene-counter').textContent='SCENE 0'+(sceneIdx+1)+' / 05';
+    updateDots(sceneIdx);
+    const scene=SCENES[sceneIdx];
+    buildBeatDots(scene);updateBeatDots(0);
+    const am=$('btn-accept-mission');if(am){am.style.display='none';am.classList.remove('slide-in');}
+    SceneImages.loadBeatImage(sceneIdx, 0);
+    typeDialogue(scene.beats[0]);
+  }
+
+  function storyNext(){if(state.storyTyping){skipCurrentTyping();return;}clearTimeout(state.autoAdvanceTimeout);stopAutoAdvanceBar();const scene=SCENES[state.storyScene];const isLastBeat=state.storyBeatIdx>=scene.beats.length-1;if(!isLastBeat){advanceBeat();}else{const nextScene=state.storyScene+1;if(nextScene<SCENES.length){showStoryScene(nextScene);}else{showAcceptMission();}}}
+  function showAcceptMission(){clearTimeout(state.autoAdvanceTimeout);Voice.stop();const continueBtn=$('btn-story-next');if(continueBtn)continueBtn.style.display='none';const skipBtn=$('btn-skip-story');if(skipBtn)skipBtn.style.display='none';const skipTypingBtn=$('btn-skip-typing');if(skipTypingBtn)skipTypingBtn.classList.remove('visible');const am=$('btn-accept-mission');if(am&&!am.classList.contains('slide-in')){setTimeout(()=>{am.style.display='flex';requestAnimationFrame(()=>requestAnimationFrame(()=>am.classList.add('slide-in')));},200);}}
+
+  function skipStory(){
+    clearTimeout(state.storyTimeout);clearTimeout(state.autoAdvanceTimeout);stopAutoAdvanceBar();Voice.stop();
+    state.storyTypingId++;state.storyTyping=false;
+    state.storyScene=4;state.storyBeatIdx=4;
+    $('scene-counter').textContent='SCENE 05 / 05';
+    updateDots(4);
+    const scene=SCENES[4];buildBeatDots(scene);updateBeatDots(4);
+    const el=$('dialogue-text');el.textContent=scene.beats[4];
+    SceneImages.loadBeatImage(4,4);
+    showAcceptMission();
+  }
+  function acceptMission(){     Voice.unlockGesture();     Voice.stop();     showNameEntry();   }
+
+  function buildVsBeatDots(beats){const c=$('vs-beat-dots');c.innerHTML='';for(let i=0;i<beats.length;i++){const d=document.createElement('div');const sp=beats[i].speaker;d.className='vs-sdot'+(i===0?' '+(sp==='lyra'?'active-lyra':'active-sentinel'):'');d.id='vs-sdot-'+i;c.appendChild(d);}}
+  function updateVsBeatDots(beatIdx,beats){for(let i=0;i<beats.length;i++){const d=$('vs-sdot-'+i);if(!d)continue;const sp=beats[i].speaker;if(i<beatIdx)d.className='vs-sdot done';else if(i===beatIdx)d.className='vs-sdot '+(sp==='lyra'?'active-lyra':'active-sentinel');else d.className='vs-sdot';}}
+  function setVsSpeaker(speaker){const isLyra=speaker==='lyra';const lyraChar=$('vs-lyra-char'),sentinelChar=$('vs-sentinel-char');const lyraPulse=$('vs-lyra-pulse'),sentinelPulse=$('vs-sentinel-pulse');const label=$('vs-speaker-label');const textEl=$('vs-dialogue-text');if(lyraChar)lyraChar.className='vs-char lyra-side'+(isLyra?' speaking':'');if(sentinelChar)sentinelChar.className='vs-char sentinel-side'+(isLyra?'':' speaking');if(lyraPulse)lyraPulse.className='vs-char-pulse'+(isLyra?' active':'');if(sentinelPulse)sentinelPulse.className='vs-char-pulse'+(isLyra?'':' active');if(label){label.textContent=isLyra?'LYRA':'SENTINEL';label.className='vs-speaker-label '+(isLyra?'lyra':'sentinel');}if(textEl)textEl.className='vs-dialogue-text '+(isLyra?'lyra-text':'sentinel-text');}
+  function startVsAutoAdvanceBar(ms){const bar=$('vs-auto-advance-bar');if(!bar)return;bar.style.transition='none';bar.style.width='0%';bar.offsetWidth;bar.classList.add('running');bar.style.transition='width '+ms+'ms linear';bar.style.width='100%';}
+  function stopVsAutoAdvanceBar(){const bar=$('vs-auto-advance-bar');if(!bar)return;bar.classList.remove('running');bar.style.transition='none';bar.style.width='0%';}
+  function updateVsFooterButtons(){
+    const beats=VAULTS[state.vaultIdx].vaultScene;
+    const isLast=state.vsBeatIdx>=beats.length-1;
+    const nextBtn=$('btn-vs-next');
+    const skipTypingBtn=$('btn-vs-skip-typing');
+    if(state.vsTyping){
+      if(nextBtn)nextBtn.style.visibility='hidden';
+      if(skipTypingBtn)skipTypingBtn.classList.add('visible');
+    }else{
+      if(skipTypingBtn)skipTypingBtn.classList.remove('visible');
+      if(nextBtn){
+        if(isLast){nextBtn.style.visibility='hidden';}
+        else{nextBtn.style.visibility='visible';nextBtn.disabled=false;}
+      }
+    }
+  }
+  function typeVsDialogue(rawBeat,speaker){const text=pickDialogue(rawBeat);clearTimeout(state.vsTimeout);clearTimeout(state.vsAutoTimeout);stopVsAutoAdvanceBar();Voice.stop();const myId=++state.vsTypingId;state.vsTyping=true;setVsSpeaker(speaker);updateVsFooterButtons();const el=$('vs-dialogue-text');el.innerHTML='';const cursor=document.createElement('span');cursor.className='vs-dialogue-cursor '+(speaker==='lyra'?'lyra-cursor':'sentinel-cursor');Voice.speakWhenReady(text,speaker==='lyra'?'LYRA':'SENTINEL');const perCharMs=Math.min(70,Math.max(22,(text.length/10*1000)/text.length));let i=0;function tick(){if(state.vsTypingId!==myId)return;if(i<text.length){el.textContent=text.slice(0,i+1);el.appendChild(cursor);i++;state.vsTimeout=setTimeout(tick,perCharMs);}else{state.vsTyping=false;cursor.style.animation='none';cursor.style.opacity='0';updateVsFooterButtons();scheduleVsAdvance(myId);}}tick();}
+  function scheduleVsAdvance(myId){const beats=VAULTS[state.vaultIdx].vaultScene;const isLast=state.vsBeatIdx>=beats.length-1;if(isLast){setTimeout(()=>{if(state.vsTypingId!==myId)return;showProceedBriefing();},800);}else{startVsAutoAdvanceBar(4500);state.vsAutoTimeout=setTimeout(()=>{if(state.vsTypingId!==myId)return;if(!state.vsTyping)vsAdvanceBeat();},4500);}}
+  function vsAdvanceBeat(){clearTimeout(state.vsAutoTimeout);stopVsAutoAdvanceBar();state.vsBeatIdx++;const beats=VAULTS[state.vaultIdx].vaultScene;updateVsBeatDots(state.vsBeatIdx,beats);VaultSceneImages.load(state.vaultIdx,state.vsBeatIdx);const beat=beats[state.vsBeatIdx];typeVsDialogue(beat,beat.speaker);}
+  function showProceedBriefing(){Voice.stop();const nextBtn=$('btn-vs-next');if(nextBtn)nextBtn.style.visibility='hidden';const skipTypingBtn=$('btn-vs-skip-typing');if(skipTypingBtn)skipTypingBtn.classList.remove('visible');const pb=$('btn-proceed-briefing');if(pb&&!pb.classList.contains('slide-in')){pb.style.pointerEvents='none';setTimeout(()=>{pb.style.display='flex';requestAnimationFrame(()=>requestAnimationFrame(()=>{pb.classList.add('slide-in');setTimeout(()=>pb.style.pointerEvents='',400);}));},200);}}
+  function showVaultScene(idx){state.vaultIdx=idx;state.vault=VAULTS[idx];state.vsBeatIdx=0;state.vsTyping=false;state.vsTypingId++;clearTimeout(state.vsTimeout);clearTimeout(state.vsAutoTimeout);stopVsAutoAdvanceBar();VaultSceneImages.reset();VaultSceneImages.preload(idx);VaultSceneImages.load(idx,0);const v=VAULTS[idx];const beats=v.vaultScene;$('vs-scene-tag').textContent=`VAULT ${idx+1} — ${v.name.toUpperCase()}`;$('vs-vault-label').textContent=`VAULT ${idx+1} OF ${VAULTS.length}`;const pb=$('btn-proceed-briefing');if(pb){pb.style.display='none';pb.classList.remove('slide-in');pb.style.pointerEvents='';}const nextBtn=$('btn-vs-next');if(nextBtn){nextBtn.style.display='';nextBtn.disabled=false;}const skipTypingBtn=$('btn-vs-skip-typing');if(skipTypingBtn)skipTypingBtn.classList.remove('visible');buildVsBeatDots(beats);updateVsBeatDots(0,beats);updateLyraMoodTag();showScreen('vaultScene');setTimeout(()=>typeVsDialogue(beats[0],beats[0].speaker),400);}
+  function vaultSceneNext(){if(state.vsTyping){skipVaultSceneTyping();return;}clearTimeout(state.vsAutoTimeout);stopVsAutoAdvanceBar();const beats=VAULTS[state.vaultIdx].vaultScene;const isLast=state.vsBeatIdx>=beats.length-1;if(!isLast){vsAdvanceBeat();}else{showProceedBriefing();}}
+ function skipVaultSceneTyping(){if(!state.vsTyping)return;clearTimeout(state.vsTimeout);clearTimeout(state.vsAutoTimeout);stopVsAutoAdvanceBar();Voice.stop();const myId=++state.vsTypingId;state.vsTyping=false;const beats=VAULTS[state.vaultIdx].vaultScene;const beat=beats[state.vsBeatIdx];$('vs-dialogue-text').textContent=pickDialogue(beat);setVsSpeaker(beat.speaker);updateVsFooterButtons();scheduleVsAdvance(myId);}
+  function skipVaultScene(){
+  clearTimeout(state.vsTimeout);
+  clearTimeout(state.vsAutoTimeout);
+  stopVsAutoAdvanceBar();
+  Voice.stop();
+  state.vsTypingId++;
+  state.vsTyping = false;
+
+  const beats = VAULTS[state.vaultIdx].vaultScene;
+  state.vsBeatIdx = beats.length - 1;
+
+  const lastBeat = beats[beats.length - 1];
+  const _textEl = document.getElementById('vs-dialogue-text');
+  if(_textEl) _textEl.textContent = pickDialogue(lastBeat);
+  setVsSpeaker(lastBeat.speaker);
+  updateVsBeatDots(state.vsBeatIdx, beats);
+
+  const bridgeQ = BRIDGE_QUESTIONS[state.vaultIdx];
+ if (bridgeQ && state.vaultIdx > 0) {
+    showBridgeQuestion(bridgeQ);
+  } else {
+    showDiscussion(state.vaultIdx);
+  }
+}
+
+  function proceedToBriefing(){Voice.stop();const bridgeQ=BRIDGE_QUESTIONS[state.vaultIdx];if(bridgeQ&&state.vaultIdx>0){showBridgeQuestion(bridgeQ);}else{showDiscussion(state.vaultIdx);}}
+  function showBridgeQuestion(q){state.bridgeNextVaultIdx=state.vaultIdx;$('bridge-icon').textContent=q.icon;$('bridge-question').textContent=q.question;const optContainer=$('bridge-options');optContainer.innerHTML='';q.options.forEach((opt,i)=>{const btn=document.createElement('button');btn.className='bridge-option';btn.textContent=opt.text;btn.onclick=()=>answerBridge(opt,i,q);optContainer.appendChild(btn);});$('bridge-explanation').className='bridge-explanation';$('bridge-explanation').textContent='';const cont=$('btn-bridge-continue');cont.className='btn-bridge-continue';showScreen('bridge');}
+  function answerBridge(opt,idx,q){document.querySelectorAll('.bridge-option').forEach((btn,i)=>{btn.onclick=null;if(q.options[i].correct)btn.classList.add('reveal-correct');});const chosen=document.querySelectorAll('.bridge-option')[idx];if(opt.correct){chosen.classList.add('selected-correct');}else{chosen.classList.add('selected-wrong');}const expEl=$('bridge-explanation');expEl.textContent=q.explanation;expEl.classList.add('show');const cont=$('btn-bridge-continue');cont.classList.add('show');}
+  function skipBridge(){showDiscussion(state.vaultIdx);}
+  function bridgeContinue(){showDiscussion(state.vaultIdx);}
+
+  function buildMenu(){const grid=$('vault-grid');grid.innerHTML='';VAULTS.forEach((v,idx)=>{const p=state.progress[v.id];const isNext=!p.cracked&&(idx===0||state.progress[VAULTS[idx-1].id].cracked);const isLocked=idx>0&&!state.progress[VAULTS[idx-1].id].cracked&&!p.cracked;const card=document.createElement('div');card.className='vault-card'+(p.cracked?' cracked':'')+(isLocked?' locked-out':'');const sb=p.cracked?'cracked':isNext?'active-mission':'';const sl=p.cracked?'🔓 CRACKED':isNext?'▶ ACTIVE':'🔒 LOCKED';card.innerHTML=`<div class="vc-status-bar"><div class="vc-vault-num">VAULT ${idx+1} OF ${VAULTS.length}</div><div class="vc-status-badge ${sb}">${sl}</div></div><div class="vc-body"><span class="vc-icon">${v.icon}</span><div class="vc-name">${v.name}</div><div class="vc-tagline">${v.tagline}</div><div class="vc-steps-info">${v.steps.length} CODES TO UNLOCK</div><div class="vc-stars">${'<span class="on">★</span>'.repeat(p.stars)}${'<span>★</span>'.repeat(3-p.stars)}</div><div class="vc-prog-wrap"><div class="vc-prog-fill" style="width:${p.cracked?100:0}%"></div></div></div>`;if(!isLocked)card.addEventListener('click',()=>showVaultScene(idx));grid.appendChild(card);});$('hud-score').textContent=state.score;$('hud-streak').textContent=state.streak;$('hud-cracked').textContent=state.totalCracked;const pbn=$('player-banner-name');if(pbn)pbn.textContent=playerName||'SENTINEL';updateCityMap();checkEmergencyBanner();}
+
+  function checkEmergencyBanner(){const due=SR.getAny();const banner=$('emergency-banner');if(due.length>0){const sub=$('eb-sub');const stepNames=[...new Set(due.map(f=>f.stepBold))].slice(0,2).join(', ');if(sub)sub.textContent=`${due.length} step${due.length>1?'s':''} flagged: ${stepNames}. Tap to run 60-second emergency drill.`;banner.classList.add('show');}else{banner.classList.remove('show');}}
+  function launchEmergencyVault(){const due=SR.getAny();if(!due.length)return;const steps=due.slice(0,4);state.isEmergencyVault=true;state.emergencySteps=steps;const baseVaultId=steps[0].vaultId;const baseVault=VAULTS.find(v=>v.id===baseVaultId)||VAULTS[0];state.vault={...baseVault,id:'emergency',name:'EMERGENCY DRILL — REVIEW',tagline:'Flagged steps only — prove you have them',steps:steps.map(s=>{const v=VAULTS.find(vv=>vv.id===s.vaultId);const step=v?v.steps[s.stepIdx]:{bold:'Step',rest:'',microLesson:''};return{...step,_srKey:{vaultId:s.vaultId,stepIdx:s.stepIdx}};})};state.vaultIdx=VAULTS.findIndex(v=>v.id===baseVaultId)||0;enterVault(-1,true);}
+
+  function showDiscussion(idx){state.vaultIdx=idx;state.vault=VAULTS[idx];const v=state.vault;$('disc-badge').textContent=`VAULT ${idx+1} OF ${VAULTS.length}`;$('disc-vault-icon').textContent=v.icon;$('disc-title').textContent=v.name;$('disc-body').innerHTML=v.discussion;showScreen('disc');}
+  function showRecap(idx,afterFn){const v=VAULTS[idx];$('recap-badge').textContent=`VAULT ${idx+1} CRACKED ✓`;$('recap-vault-icon').textContent=v.icon;$('recap-title').textContent=v.name+' — RECAP';$('recap-body').innerHTML=v.discussion;state._recapAfter=afterFn;const isLast=idx>=VAULTS.length-1;const allDone=VAULTS.every(vv=>state.progress[vv.id].cracked);$('btn-recap-continue').innerHTML=(isLast&&allDone)?'<span>🏁</span><span>FINISH</span><span class="bsv-arrow">→</span>':'<span>✓</span><span>CONTINUE</span><span class="bsv-arrow">→</span>';showScreen('recap');}
+function recapContinue(){const fn=state._recapAfter;state._recapAfter=null;if(fn)fn();else{showScreen('menu');buildMenu();}}
+  function startVaultFromDisc(){
+    Voice.unlockGesture();
+  Voice.startKeepalive();
+  enterVault(state.vaultIdx,false);
+}
+
+  function enterVault(idx,isEmergency){state.isEmergencyVault=!!isEmergency;timerState.vaultStart=Date.now();timerState.elapsed=0;failTriggered=false;startTimer();if(!isEmergency){state.vaultIdx=idx;state.vault=VAULTS[idx];}state.waiting=false;state.hintVisible=false;$('vault-subject-label').textContent=state.vault.name.toUpperCase();$('dial-hub-icon').textContent=state.vault.icon||'⚙';$('dial-emblem').textContent=state.vault.icon||'⚙';$('hint-panel').style.display='none';$('btn-hint').classList.remove('active');$('btn-hint').disabled=false;$('btn-hint').textContent='💡 INTEL';$('answer-key-row').style.display='none';$('slot-feedback-row').style.display='none';$('micro-lesson').className='micro-lesson';const strip=$('emergency-topbar-strip');if(strip)strip.className='emergency-topbar-strip'+(isEmergency?' show':'');if(isEmergency){const ets=$('ets-sub');if(ets)ets.textContent=`${state.vault.steps.length} FLAGGED STEP${state.vault.steps.length>1?'S':''}`;}showScreen('vault');requestAnimationFrame(()=>{initCanvas();loadVault();});}
+  function loadVault(){const v=state.vault;const n=v.steps.length;const pool=[...Array(10).keys()];shuffle(pool);state.codeMap=pool.slice(0,n);state.slotIdx=0;state.attempts=0;state.waiting=false;state.hintVisible=false;state.hintUsed=false;state.snappedNum=null;state.enteredCodes=new Array(n).fill(null);$('q-number').textContent=state.isEmergencyVault?'EMERGENCY DRILL':`VAULT ${state.vaultIdx+1} / ${VAULTS.length}`;$('q-badge').textContent=`${n} CODES`;$('q-topic').textContent=v.name;$('topic-lock-icon').textContent=state.isEmergencyVault?'🚨':'🔒';$('vault-score-live').textContent=state.score+' pts';$('result-msg').className='result-msg';$('result-msg').textContent='';$('btn-confirm').disabled=true;$('vault-door').classList.remove('door-opening','shake');$('hint-panel').style.display='none';$('answer-key-row').style.display='none';$('btn-hint').classList.remove('active');$('slot-feedback-row').style.display='none';$('micro-lesson').className='micro-lesson';buildClueTable(v,state.codeMap);buildSlots(n);buildPips();state.dialAngle=0;state.nearestNum=0;state.snappedNum=null;state.lastTickAngle=0;const sl=$('snap-label');if(sl)sl.textContent='SPIN TO FILL SLOT';updateSnapReadout();
+drawDial();
+initDial();}
+  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function buildClueTable(v,codeMap){const rows=v.steps.map((s,i)=>({stepIdx:i,code:codeMap[i],step:s}));shuffle(rows);const tbody=$('clue-tbody');tbody.innerHTML='';rows.forEach(row=>{const tr=document.createElement('tr');tr.dataset.stepIdx=row.stepIdx;const isFlagged=state.isEmergencyVault;tr.innerHTML=`<td class="ct-code"><div class="code-badge" id="code-badge-${row.stepIdx}">${row.code}</div></td><td class="ct-desc"><span class="step-bold">${row.step.bold}</span>${row.step.rest?' '+row.step.rest:''}${isFlagged?'<span class="sr-flag" title="Flagged for review"></span>':''}</td>`;tbody.appendChild(tr);});markDone(0);}
+  function markDone(si){document.querySelectorAll('.code-badge').forEach(b=>b.classList.remove('done'));for(let i=0;i<si;i++){const b=$(`code-badge-${i}`);if(b)b.classList.add('done');}}
+  function buildSlots(n){const row=$('answer-display');row.innerHTML='';for(let i=0;i<n;i++){const s=document.createElement('div');s.className='ans-slot'+(i===0?' active-slot':'');s.id=`slot-${i}`;s.textContent='—';row.appendChild(s);}}
+  function buildPips(){const row=$('attempts-row');row.innerHTML='';for(let i=0;i<state.maxAttempts;i++){const p=document.createElement('div');p.className='pip';p.id=`pip-${i}`;row.appendChild(p);}}
+
+  const DIGITS=10;
+  function drawDial(){if(!ctx)return;const sz=canvas.width,cx=sz/2,cy=sz/2,r=cx-1;ctx.clearRect(0,0,sz,sz);const bg=ctx.createRadialGradient(cx-20,cy-20,8,cx,cy,r);bg.addColorStop(0,'#0e1c14');bg.addColorStop(.6,'#080e0a');bg.addColorStop(1,'#020608');ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();ctx.beginPath();ctx.arc(cx,cy,r-2,0,Math.PI*2);ctx.strokeStyle='rgba(0,255,136,0.3)';ctx.lineWidth=1.5;ctx.stroke();ctx.beginPath();ctx.arc(cx,cy,r-32,0,Math.PI*2);ctx.strokeStyle='rgba(0,255,136,0.1)';ctx.lineWidth=1;ctx.stroke();const seg=(Math.PI*2)/DIGITS;const topD=((-state.dialAngle/(360/DIGITS))%DIGITS+DIGITS)%DIGITS;const numScale=sz/276;for(let d=0;d<DIGITS;d++){const ang=-Math.PI/2+d*seg;const lit=state.snappedNum!==null&&d===Math.round(topD)%DIGITS;ctx.save();ctx.beginPath();ctx.moveTo(cx+Math.cos(ang)*(r-18),cy+Math.sin(ang)*(r-18));ctx.lineTo(cx+Math.cos(ang)*(r-4),cy+Math.sin(ang)*(r-4));ctx.strokeStyle=lit?'#00ff88':'rgba(0,100,50,0.4)';ctx.lineWidth=lit?3:1.5;if(lit){ctx.shadowColor='#00ff88';ctx.shadowBlur=12;}ctx.stroke();ctx.restore();for(let s=1;s<=4;s++){const sa=ang+(s*seg/5);ctx.beginPath();ctx.moveTo(cx+Math.cos(sa)*(r-4),cy+Math.sin(sa)*(r-4));ctx.lineTo(cx+Math.cos(sa)*(r-10),cy+Math.sin(sa)*(r-10));ctx.strokeStyle='rgba(0,80,40,0.3)';ctx.lineWidth=1;ctx.stroke();}const nr=r-26,nx=cx+Math.cos(ang)*nr,ny=cy+Math.sin(ang)*nr;ctx.save();ctx.translate(nx,ny);const fs=Math.round((lit?22:18)*numScale);ctx.font=lit?`bold ${fs}px "Orbitron",sans-serif`:`${fs}px "Orbitron",sans-serif`;ctx.fillStyle=lit?'#00ff88':'rgba(0,100,50,0.65)';ctx.textAlign='center';ctx.textBaseline='middle';if(lit){ctx.shadowColor='#00ff88';ctx.shadowBlur=20;}ctx.fillText(String(d),0,0);ctx.restore();}dialBody.style.transform=`rotate(${state.dialAngle}deg)`;}
+  function updateSnapReadout(){const el=$('snap-val');if(state.snappedNum!==null){el.textContent=String(state.snappedNum);el.classList.add('lit');}else{el.textContent='—';el.classList.remove('lit');}}
+  function pAngle(e){const r=dialBody.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,ex=e.touches?e.touches[0].clientX:e.clientX,ey=e.touches?e.touches[0].clientY:e.clientY;return Math.atan2(ey-cy,ex-cx)*(180/Math.PI);}
+  function calcNearest(){const sd=360/DIGITS,raw=((-state.dialAngle/sd)%DIGITS+DIGITS)%DIGITS;return Math.round(raw)%DIGITS;}
+  function checkTick(){const sd=360/DIGITS,cs=Math.floor(Math.abs(state.dialAngle)/sd),ls=Math.floor(Math.abs(state.lastTickAngle)/sd);if(cs!==ls){playTick();state.lastTickAngle=state.dialAngle;}}
+  function onDown(e){if(state.waiting)return;getAC();document.body.style.overscrollBehavior='none';state.dragging=true;state.lastAngle=pAngle(e);state.snappedNum=null;updateSnapReadout();drawDial();e.preventDefault();}
+  function onMove(e){if(!state.dragging)return;const a=pAngle(e);let d=a-state.lastAngle;if(d>180)d-=360;if(d<-180)d+=360;state.dialAngle+=d;state.lastAngle=a;state.nearestNum=calcNearest();state.snappedNum=null;checkTick();drawDial();e.preventDefault();}
+  function onUp(){if(!state.dragging)return;state.dragging=false;document.body.style.overscrollBehavior='';state.nearestNum=calcNearest();state.dialAngle=-(state.nearestNum*(360/DIGITS));state.snappedNum=state.nearestNum;drawDial();updateSnapReadout();playSnap();navigator.vibrate&&navigator.vibrate(12);dialBody.classList.add('dial-snap-fx');setTimeout(()=>dialBody.classList.remove('dial-snap-fx'),220);fillSlot();}
+  let _dialCleanup=null;
+function initDial(){
+  if(_dialCleanup)_dialCleanup();
+  const body=dialBody;
+  const _onDown=e=>onDown(e),_onMove=e=>onMove(e),_onUp=()=>onUp();
+  body.addEventListener('mousedown',_onDown,{passive:false});
+  window.addEventListener('mousemove',_onMove,{passive:false});
+  window.addEventListener('mouseup',_onUp);
+  body.addEventListener('touchstart',_onDown,{passive:false});
+  window.addEventListener('touchmove',_onMove,{passive:false});
+  window.addEventListener('touchend',_onUp);
+  _dialCleanup=()=>{
+    body.removeEventListener('mousedown',_onDown);
+    window.removeEventListener('mousemove',_onMove);
+    window.removeEventListener('mouseup',_onUp);
+    body.removeEventListener('touchstart',_onDown);
+    window.removeEventListener('touchmove',_onMove);
+    window.removeEventListener('touchend',_onUp);
+    _dialCleanup=null;
+  };
+}
+function cleanupDial(){if(_dialCleanup)_dialCleanup();}
+
+  function fillSlot(){if(state.waiting||state.snappedNum===null)return;if(state.slotIdx>=state.vault.steps.length)return;const slot=$('slot-'+state.slotIdx);state.enteredCodes[state.slotIdx]=state.snappedNum;slot.textContent=state.snappedNum;slot.classList.remove('active-slot');slot.classList.add('filled');state.slotIdx++;const ub=$('btn-undo');if(ub)ub.disabled=false;if(state.slotIdx<state.vault.steps.length){$('slot-'+state.slotIdx).classList.add('active-slot');showResult('correct',`✔  Slot ${state.slotIdx} set — dial code for Step ${state.slotIdx+1}`);}else{$('btn-confirm').disabled=false;const sl=$('snap-label');if(sl)sl.textContent='READY TO SUBMIT';showResult('correct','✅  All codes entered — hit LOCK IN to submit!');}}
+
+  function showSlotFeedback(correctFlags){const row=$('slot-feedback-row');row.innerHTML='';row.style.display='flex';correctFlags.forEach((correct,i)=>{const fb=document.createElement('div');fb.className=`slot-fb ${correct?'correct':'wrong'}`;fb.textContent=`${correct?'✓':'✗'} Step ${i+1}`;row.appendChild(fb);});}
+  function showMicroLesson(stepIndices){const wrongIdx=stepIndices.find(i=>state.enteredCodes[i]!==state.codeMap[i]);if(wrongIdx===undefined)return;const step=state.vault.steps[wrongIdx];if(!step||!step.microLesson)return;const ml=$('micro-lesson');const mlTitle=$('ml-title');const mlBody=$('ml-body');if(!ml)return;mlTitle.textContent=`📡 INTEL — STEP ${wrongIdx+1}: ${step.bold}`;mlBody.textContent=step.microLesson;ml.className='micro-lesson show';}
+
+  function confirmDigit(){if(state.waiting)return;if(state.slotIdx<state.vault.steps.length){showResult('wrong',`▼  Fill all ${state.vault.steps.length} slots first`);return;}const allCorrect=state.enteredCodes.every((code,i)=>code===state.codeMap[i]);if(allCorrect){if(state.isEmergencyVault){state.vault.steps.forEach((step,i)=>{if(step._srKey)SR.clearStep(step._srKey.vaultId,step._srKey.stepIdx);});}for(let i=0;i<state.vault.steps.length;i++){const s=$('slot-'+i);if(s){s.classList.add('flash-correct');setTimeout((el=>()=>el.classList.remove('flash-correct'))(s),500);}}markDone(state.vault.steps.length);if(state.isEmergencyVault){showResult('correct','✔  DRILL COMPLETE — Steps cleared from review queue!');state.waiting=true;$('btn-confirm').disabled=true;setTimeout(()=>{state.isEmergencyVault=false;showScreen('menu');buildMenu();},1800);return;}vaultCracked();}else{playLock(false);navigator.vibrate&&navigator.vibrate([30,20,80]);$('vault-door').classList.add('shake');flashPhaseRed();setTimeout(()=>$('vault-door').classList.remove('shake'),440);const correctFlags=state.enteredCodes.map((code,i)=>code===state.codeMap[i]);const wrongIndices=[];for(let i=0;i<state.vault.steps.length;i++){const s=$('slot-'+i);if(s){if(correctFlags[i]){s.classList.add('persist-correct');}else{s.classList.add('persist-wrong');s.classList.add('flash-wrong');wrongIndices.push(i);}}}setTimeout(()=>{for(let i=0;i<state.vault.steps.length;i++){const s=$('slot-'+i);if(s)s.classList.remove('flash-wrong');}},600);showSlotFeedback(correctFlags);showMicroLesson(wrongIndices);if(!state.isEmergencyVault){wrongIndices.forEach(i=>{const step=state.vault.steps[i];SR.flagMissed(state.vault.id,i,step.bold,state.vault.icon);});}state.attempts++;state.streak=0;const pip=$('pip-'+(state.attempts-1));if(pip)pip.classList.add('used');if(state.attempts>=state.maxAttempts){$('ak-codes').textContent=state.codeMap.join(' → ');$('answer-key-row').style.display='flex';showResult('wrong','✘  Locked out. Correct order shown above. Study the micro-lessons.');state.waiting=true;$('btn-confirm').disabled=true;loadTrack('fail');setTimeout(()=>showOverlay(false),1400);}else{const left=state.maxAttempts-state.attempts;showResult('wrong',`✘  Some steps wrong — see feedback above. ${left} attempt${left>1?'s':''} remaining. Study the intel below, then clear and retry.`);}}}
+  function vaultCracked(){playVaultOpen();navigator.vibrate&&navigator.vibrate([10,10,10,10,60]);const pts=calcPts();if(!state.isEmergencyVault)state.vaultPts[state.vault.id]=pts;state.score+=pts;state.streak+=1;state.totalCracked+=1;state.progress[state.vault.id].cracked=true;state.progress[state.vault.id].stars=Math.max(state.progress[state.vault.id].stars,state.attempts===0?3:state.attempts===1?2:1);updateCityHealth(Math.min(100,state.cityHealth+(state.vaultIdx===VAULTS.length-1?40:28)));$('vault-score-live').textContent=state.score+' pts';$('topic-lock-icon').textContent='🔓';showResult('correct','✔  VAULT CRACKED — Formula component released!');state.vault.steps.forEach((_,i)=>{const b=$(`code-badge-${i}`);if(b){b.classList.remove('active-target');b.classList.add('done');}});state.waiting=true;$('btn-confirm').disabled=true;setTimeout(()=>$('vault-door').classList.add('door-opening'),350);const allDone=VAULTS.every(v=>state.progress[v.id].cracked);const crackedIdx=state.vaultIdx;if(allDone){stopTimer();loadTrack('win');setTimeout(()=>{overlay.classList.remove('show');showRecap(crackedIdx,()=>{showVictoryScreen();});},2200);}else{setTimeout(()=>showOverlay(true,pts),1400);}}
+  function calcPts(){return 100+(state.attempts===0?60:0)+Math.max(0,state.maxAttempts-state.attempts-1)*30+Math.min(state.streak,8)*15;}
+  function resetSlots(){state.slotIdx=0;state.snappedNum=null;state.enteredCodes=new Array(state.vault.steps.length).fill(null);for(let i=0;i<state.vault.steps.length;i++){const s=$(`slot-${i}`);if(s){s.textContent='—';s.className='ans-slot'+(i===0?' active-slot':'');}}markDone(0);$('result-msg').className='result-msg';$('result-msg').textContent='';$('slot-feedback-row').style.display='none';updateSnapReadout();
+drawDial();
+initDial();
+$('btn-confirm').disabled=true;
+    const ub=$('btn-undo');if(ub)ub.disabled=true;
+    const sl=$('snap-label');if(sl)sl.textContent='SPIN TO FILL SLOT';}
+  function clearAnswer(){if(state.waiting)return;resetSlots();}
+  function toggleHint(){
+    if(state.hintUsed)return;
+    state.hintVisible=true;
+    state.hintUsed=true;
+    const panel=$('hint-panel'),btn=$('btn-hint');
+    const s=state.vault.steps[state.slotIdx<state.vault.steps.length?state.slotIdx:state.vault.steps.length-1];
+    $('hint-body').innerHTML=`Next: <strong>${s.bold}${s.rest?' '+s.rest:''}</strong><br>Find it in the table — its code number is your next dial target.`;
+    panel.style.display='block';
+    btn.classList.add('active');
+    btn.disabled=true;
+    btn.textContent='💡 USED';
+  }
+  function showOverlay(success,pts=0){const v=state.vault,isLast=state.vaultIdx>=VAULTS.length-1;const allDone=VAULTS.every(v=>state.progress[v.id].cracked);$('ov-icon').textContent=success?(allDone?'🏆':'🔓'):'🔒';const title=$('ov-title');title.textContent=success?(allDone?'CITY SAVED':'VAULT CRACKED'):'VAULT SEALED';title.className='overlay-title'+(success?(allDone?' victory':''):' fail');$('ov-pts').textContent=success?`+${pts} pts`:'+0 pts';$('ov-time').textContent=`⏱ MISSION TIME: ${fmt(timerState.elapsed)}`;const beat=$('ov-story-beat');beat.textContent=success?v.storySuccess:v.storyFail;beat.className='overlay-story-beat'+(success?'':' fail-beat');$('ov-sub').textContent=success?(allDone?'All formula components synthesized. The city will survive.':`Unlocked with ${state.attempts} mistake${state.attempts===1?'':'s'}.`):'Study the correct order and the micro-lessons above, then try again.';const orderEl=$('ov-correct');orderEl.innerHTML=v.steps.map((s,i)=>`<div class="step-line"><div class="step-num${success?'':' fail'}">Step ${i+1} → ${state.codeMap[i]}</div><div class="step-txt">${s.bold}${s.rest?' '+s.rest:''}</div></div>`).join('');$('ov-next-btn').textContent=!success?'↺ RETRY':isLast?'🏁 FINISH':'NEXT VAULT →';overlay.classList.add('show');setTimeout(()=>{const ob=overlay.querySelector('.overlay-btns');if(ob)ob.scrollIntoView({block:'nearest',behavior:'smooth'});},350);}
+  function nextVault(){
+  overlay.classList.remove('show');
+  if(!state.progress[state.vault.id].cracked){showDiscussion(state.vaultIdx);return;}
+  const crackedIdx=state.vaultIdx;
+  if(crackedIdx>=VAULTS.length-1){
+    showRecap(crackedIdx,()=>{showScreen('menu');buildMenu();});
+  }else{
+    showRecap(crackedIdx,()=>{showVaultScene(crackedIdx+1);});
+  }
+}
+  function goBack(){overlay.classList.remove('show');cleanupDial();stopTimer();document.getElementById('mission-timer').classList.remove('visible');Voice.stop();Voice.stopKeepalive();state.vsTypingId++;state.vsTyping=false;state.storyTypingId++;state.storyTyping=false;clearTimeout(state.vsTimeout);clearTimeout(state.vsAutoTimeout);clearTimeout(state.storyTimeout);clearTimeout(state.autoAdvanceTimeout);stopVsAutoAdvanceBar();stopAutoAdvanceBar();loadTrack('base');showScreen('menu');buildMenu();}
+  function undoLastSlot(){if(state.waiting||state.slotIdx===0)return;state.slotIdx--;const slot=document.getElementById('slot-'+state.slotIdx);if(slot){slot.textContent='—';slot.className='ans-slot active-slot';}const next=document.getElementById('slot-'+(state.slotIdx+1));if(next)next.className='ans-slot';state.enteredCodes[state.slotIdx]=null;document.getElementById('btn-confirm').disabled=true;const ub=document.getElementById('btn-undo');if(ub)ub.disabled=state.slotIdx===0;updateSnapReadout();drawDial();initDial();}
+  function showResult(type,msg){const el=$('result-msg');el.className=`result-msg ${type}`;el.textContent=msg;}
+  function flashPhaseRed(){const el=$('phase-flash');el.className='phase-flash red';el.style.opacity='1';setTimeout(()=>{el.style.transition='opacity 2s';el.style.opacity='0';},200);}
+  function showScreen(key){Object.values(screens).forEach(s=>{s.classList.remove('active');s.style.opacity='0';s.style.display='none';});if(screens[key]){screens[key].classList.add('active');screens[key].style.display='flex';screens[key].style.opacity='1';screens[key].scrollTop=0;}window.scrollTo(0,0);}
+  function spawnParticles(){const c=$('particles');c.innerHTML='';for(let i=0;i<24;i++){const p=document.createElement('div');p.className='particle';const sz=Math.random()*2+0.6;p.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;animation-duration:${10+Math.random()*14}s;animation-delay:${Math.random()*12}s;`;c.appendChild(p);}}
+
+  let resizeTimeout;
+  window.addEventListener('resize',()=>{clearTimeout(resizeTimeout);resizeTimeout=setTimeout(()=>{if(screens.vault.classList.contains('active')){initCanvas();drawDial();}},150);});
+
+  // Detect in-app browser (Messenger, Instagram, TikTok, etc.)
+  (function detectInAppBrowser(){
+    const ua = navigator.userAgent || '';
+    const isInApp = /FBAN|FBAV|Instagram|Musical.ly|TikTok|MicroMessenger|Line\/|Twitter|Snapchat/i.test(ua)
+      || (!/Chrome|Safari|Firefox|Opera/i.test(ua) && /Mobile/i.test(ua));
+    if(isInApp){
+      const w = document.getElementById('inapp-warning');
+      if(w) w.style.display = 'block';
+    }
+  })();
+
+  spawnParticles();buildDots();
+  SceneImages.preloadAll();
+  function _startAfterAccess(){const s=$('screen-story');s.style.display='flex';s.style.opacity='1';s.classList.add('active');showStoryScene(0);Voice.startKeepalive();}
+runBoot(()=>{}); // boot bar still runs; story starts only after access code is verified
+
+  function retryFromFail(){const fs=$('screen-fail');fs.classList.remove('active');fs.style.display='none';fs.style.opacity='0';state.score=0;state.streak=0;state.totalCracked=0;state.cityHealth=23;state.vaultPts={};VAULTS.forEach(v=>{state.progress[v.id]={cracked:false,stars:0};});timerState.elapsed=0;failTriggered=false;runComplete=false;stopMusic();stopTimer();document.getElementById('mission-timer').classList.remove('visible');Drone.start();showNameEntry();}
+
+  return{
+    bootTap,storyNext,skipStory,skipCurrentTyping,acceptMission,
+    _startAfterAccess,recapContinue,
+    toggleMusic,toggleVoice,
+    confirmName,
+    startVaultFromDisc,confirmDigit,clearAnswer,toggleHint,nextVault,goBack,
+    vaultSceneNext,skipVaultScene,skipVaultSceneTyping,proceedToBriefing,
+    restartFromVictory,retryFromFail,menuFromFail,launchEmergencyVault,
+    skipBridge,bridgeContinue,
+    undoLastSlot,
+    openLeaderboard,closeLeaderboard,refreshLeaderboard,exportCSV,clearLeaderboard
+  };
+})();
+</script>
+</body>
+</html>
